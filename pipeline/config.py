@@ -25,6 +25,23 @@ WESTIN_FALLBACK = [
     (47.61336, -122.33768, 19.0, 133.0),
 ]
 
+# The Spheres (Amazon), 7th & Lenora. Used if OSM has no footprints named
+# "Spheres". lat, lon, radius_m, height_m
+SPHERES_FALLBACK = [
+    (47.61574, -122.33950, 20.0, 27.0),
+    (47.61556, -122.33922, 16.0, 23.0),
+    (47.61590, -122.33918, 13.0, 19.0),
+]
+
+# Place labels: (label, sub-label, OSM name regex, fallback lat, lon, height above ground m)
+PLACES = [
+    ("The Spheres", "Amazon · 7th & Lenora", r"^the spheres$|^spheres$", 47.61574, -122.33935, 45),
+    ("Olympic Sculpture Park", "Seattle Art Museum", r"olympic sculpture park", 47.61660, -122.35530, 30),
+    ("Pike Place Market", "since 1907", r"^pike place market$", 47.60920, -122.34190, 40),
+    ("Climate Pledge Arena", "Seattle Center", r"climate pledge arena", 47.62210, -122.35400, 40),
+    ("MoPOP", "Museum of Pop Culture", r"museum of pop culture|^mopop$", 47.62145, -122.34810, 40),
+]
+
 # Approximate monorail alignment, only used if OSM has no railway=monorail.
 MONORAIL_FALLBACK = [
     (47.62165, -122.34905),

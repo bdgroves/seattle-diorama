@@ -3,6 +3,7 @@
 Usage:  pixi run fetch            (uses cache if present)
         pixi run refetch          (forces a new download)
 """
+import hashlib
 import json
 import sys
 import time
@@ -32,6 +33,9 @@ def overpass_query(bbox):
   way["landuse"~"^(grass|recreation_ground|village_green|flowerbed)$"]{b};
   way["place"="square"]{b};
   node["natural"="tree"]{b};
+  node["tourism"="artwork"]{b};
+  way["tourism"="artwork"]{b};
+  way["leisure"="park"]["name"]{b};
 );
 out geom;
 """
@@ -39,11 +43,13 @@ out geom;
 
 def main():
     force = "--force" in sys.argv
-    if RAW_OSM.exists() and not force:
-        print(f"Using cached {RAW_OSM.relative_to(RAW_OSM.parents[2])} (pixi run refetch to update)")
+    q = overpass_query(BBOX)
+    qhash = hashlib.md5(q.encode()).hexdigest()[:10]
+    stamp = RAW_OSM.with_suffix(".query")
+    if RAW_OSM.exists() and not force and stamp.exists() and stamp.read_text().strip() == qhash:
+        print(f"Using cached {RAW_OSM.name} (pixi run refetch to update)")
         return
     RAW_DIR.mkdir(parents=True, exist_ok=True)
-    q = overpass_query(BBOX)
     last_err = None
     for url in OVERPASS_URLS:
         for attempt in range(2):
@@ -59,6 +65,7 @@ def main():
                 if n == 0:
                     raise RuntimeError("empty response")
                 RAW_OSM.write_text(json.dumps(data), encoding="utf-8")
+                stamp.write_text(qhash)
                 print(f"Saved {n:,} OSM elements -> {RAW_OSM}")
                 return
             except Exception as exc:  # noqa: BLE001

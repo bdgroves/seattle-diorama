@@ -241,14 +241,29 @@ def main():
     roads, paths, lanes, tree_streets = [], [], [], []
     water, parks, plazas, coast, monorail = [], [], [], [], []
     tree_nodes = []
-    westin = []
+    westin, spheres = [], []
+    artworks = []
+    named = []   # (lowercase name, geometry) for place labels
 
+    ART_SKIP = {"mural", "graffiti", "painting", "mosaic"}
     for el in els:
         t = el.get("tags", {})
+        if t.get("tourism") == "artwork" and t.get("artwork_type", "") not in ART_SKIP:
+            if el["type"] == "node":
+                pt = proj(el["lat"], el["lon"])
+            else:
+                pts = way_coords(el)
+                pt = tuple(LineString(pts).centroid.coords[0]) if len(pts) > 1 else None
+            if pt and CLIP.contains(Point(pt)):
+                artworks.append((pt, t.get("name", ""), t.get("artwork_type", ""), f"{el['type']}{el['id']}"))
         if el["type"] == "node":
             if t.get("natural") == "tree":
                 tree_nodes.append(proj(el["lat"], el["lon"]))
             continue
+        if t.get("name") and el["type"] in ("way", "relation"):
+            g = element_polygon(el)
+            if g is not None:
+                named.append((t["name"].lower(), g))
 
         if "building" in t or "building:part" in t:
             if t.get("building") in ("no", "construction") or t.get("location") == "underground":
@@ -259,8 +274,13 @@ def main():
             if poly is None:
                 continue
             rec = {"geom": poly, "tags": t, "key": f"{el['type']}{el['id']}"}
-            if "westin" in (t.get("name", "") + t.get("brand", "")).lower():
+            nm = (t.get("name", "") + " " + t.get("brand", "")).lower()
+            # The Westin Seattle hotel towers are round; the Westin Building
+            # (Exchange) on 6th Ave is not, so leave it as an ordinary building.
+            if "westin" in nm and not re.search(r"building|exchange|data", nm):
                 westin.append(rec)
+            if re.search(r"\bspheres?\b", nm):
+                spheres.append(rec)
             (parts if "building:part" in t and "building" not in t else buildings).append(rec)
             continue
 
@@ -373,6 +393,34 @@ def main():
             x, y = proj(lat, lon)
             westin_out.append([round(x, 1), round(y, 1), r, h])
     westin_pts = [(Point(w[0], w[1]), w[2] + 4) for w in westin_out]
+    debug = {"westin_candidates": sorted({r["tags"].get("name", "?") for r in westin}),
+             "spheres_candidates": sorted({r["tags"].get("name", "?") for r in spheres})}
+
+    # ---------------- The Spheres: three glass domes
+    sph_out, sph_keys = [], set()
+    round_parts = []
+    for rec in spheres:
+        g = rec["geom"]
+        if isinstance(g, MultiPolygon) or not g.length:
+            continue
+        if 4 * math.pi * g.area / g.length ** 2 > 0.7 and 80 < g.area < 2500:
+            round_parts.append(rec)
+    if len(round_parts) >= 2:
+        for rec in sorted(round_parts, key=lambda r: -r["geom"].area)[:3]:
+            g = rec["geom"]
+            c = g.centroid
+            r = math.sqrt(g.area / math.pi)
+            h = parse_len(rec["tags"].get("height")) or r * 1.35
+            sph_out.append([round(c.x, 1), round(c.y, 1), round(r, 1), round(h, 1)])
+    else:
+        base = [(*proj(a, b), r, h) for a, b, r, h in config.SPHERES_FALLBACK]
+        if spheres:  # one footprint for the whole complex: centre the trio on it
+            c = unary_union([r["geom"] for r in spheres]).centroid
+            mx = sum(b[0] for b in base) / 3; my = sum(b[1] for b in base) / 3
+            base = [(x - mx + c.x, y - my + c.y, r, h) for x, y, r, h in base]
+        sph_out = [[round(x, 1), round(y, 1), r, h] for x, y, r, h in base]
+    sph_keys = {r["key"] for r in spheres}
+    westin_pts += [(Point(s_[0], s_[1]), s_[2] + 3) for s_ in sph_out]
 
     def is_landmark(g):
         c = g.centroid
@@ -386,7 +434,7 @@ def main():
 
     def emit(rec):
         g = rec["geom"]
-        if rec["key"] in westin_keys or is_landmark(g):
+        if rec["key"] in westin_keys or rec["key"] in sph_keys or is_landmark(g):
             return
         if not CLIP.contains(g.representative_point()):
             return
@@ -493,6 +541,29 @@ def main():
         mono_out.append(flat(c, close_drop=False))
     print(f"Monorail: {len(mono_out)} beam(s), {sum(l.length for l in mono):.0f} m")
 
+    # ---------------- public art (3D pieces only; murals skipped)
+    art_out = []
+    for (x, y), name, kind, key in artworks:
+        if Point(x, y).distance(needle_pt) < config.NEEDLE_CLEAR_RADIUS:
+            continue
+        art_out.append([round(x, 1), round(y, 1), round(seed_of(key), 3), name[:60]])
+    print(f"Artworks: {len(art_out)}")
+
+    # ---------------- place labels
+    places = []
+    for label, sub, rx, lat, lon, hh in config.PLACES:
+        hit = [g for n, g in named if re.search(rx, n)]
+        if hit:
+            g = max(hit, key=lambda g: g.area)
+            p = g.representative_point() if g.area > 0 else g.centroid
+            x, y = p.x, p.y
+        else:
+            x, y = proj(lat, lon)
+        if CLIP.contains(Point(x, y)):
+            places.append([label, sub, round(x, 1), round(y, 1), hh, bool(hit)])
+    debug["places_found"] = [p[0] for p in places if p[5]]
+    debug["artworks"] = [a[3] for a in art_out if a[3]][:80]
+
     scene = {
         "meta": {
             "origin": [LAT0, LON0],
@@ -501,6 +572,7 @@ def main():
             "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "source": src.name,
             "attribution": "© OpenStreetMap contributors (ODbL)",
+            "debug": debug,
         },
         "buildings": out_b,
         "roads": layer([road_u], 0.4),
@@ -515,7 +587,10 @@ def main():
         "landmarks": {
             "needle": [round(needle_xy[0], 1), round(needle_xy[1], 1)],
             "westin": westin_out,
+            "spheres": sph_out,
         },
+        "artworks": art_out,
+        "places": [p[:5] for p in places],
     }
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
