@@ -22,6 +22,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -eo pipefail {0}
     steps:
       - uses: actions/checkout@v7
 
@@ -30,8 +33,22 @@ jobs:
           locked: false
           cache: false
 
-      - name: Fetch OpenStreetMap + build scene
-        run: pixi run city
+      - name: Fetch OpenStreetMap
+        run: pixi run fetch
+
+      - name: Build scene
+        run: pixi run build 2>&1 | tee build.log
+
+      - name: Keep raw OSM + build log on the debug-data branch
+        if: always()
+        run: |
+          mkdir -p /tmp/dbg && cp data/raw/osm.json build.log /tmp/dbg/ 2>/dev/null || true
+          cd /tmp/dbg && [ -n "$(ls)" ] || exit 0
+          git init -q -b debug-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "Raw OSM + build log ($(date -u +%Y-%m-%d))"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" debug-data
 
       - name: Bundle the viewer
         run: pixi run bundle
