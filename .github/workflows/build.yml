@@ -1,0 +1,62 @@
+name: Build city & deploy
+
+# Pulls fresh OpenStreetMap data, builds the scene, bundles the viewer and
+# publishes it to GitHub Pages. The built scene.json is also pushed to the
+# `scene-data` branch so it can be inspected or reused.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 9 * * 1"   # weekly refresh of the map data (Mondays)
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: prefix-dev/setup-pixi@v0.11.2
+        with:
+          locked: false
+          cache: false
+
+      - name: Fetch OpenStreetMap + build scene
+        run: pixi run city
+
+      - name: Bundle the viewer
+        run: pixi run bundle
+
+      - name: Publish scene.json to the scene-data branch
+        run: |
+          mkdir -p /tmp/scene && cp web/public/data/scene.json /tmp/scene/
+          cd /tmp/scene
+          git init -q -b scene-data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scene.json
+          git commit -q -m "Scene data from OSM ($(date -u +%Y-%m-%d))"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" scene-data
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
