@@ -33,6 +33,7 @@ export function makeBuildingMaterial(uniforms) {
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0.0 });
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uNight = uniforms.uNight;
+    sh.uniforms.uWet = uniforms.uWet;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', `#include <common>
         attribute float aU; attribute float aWin; attribute float aSeed;
@@ -41,7 +42,7 @@ export function makeBuildingMaterial(uniforms) {
         vU = aU; vWin = aWin; vSeed = aSeed; vWY = (modelMatrix * vec4(transformed, 1.0)).y;`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform float uNight;
+        uniform float uNight; uniform float uWet;
         varying float vU; varying float vWin; varying float vSeed; varying float vWY;
         float h31(vec3 p){ return fract(sin(dot(p, vec3(12.9898,78.233,37.719))) * 43758.5453); }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
@@ -58,13 +59,15 @@ export function makeBuildingMaterial(uniforms) {
         float ao = mix(0.60, 1.0, smoothstep(0.0, 16.0, vWY));
         diffuseColor.rgb *= mix(1.0, ao, step(0.5, vWin) * 0.6 + 0.4);
         vec3 glass = mix(vec3(0.36, 0.45, 0.55), vec3(0.06, 0.08, 0.12), uNight);
-        diffuseColor.rgb = mix(diffuseColor.rgb, glass, winAA * 0.78);`)
+        diffuseColor.rgb = mix(diffuseColor.rgb, glass, winAA * 0.78);
+        diffuseColor.rgb *= 1.0 - 0.22 * uWet;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-        roughnessFactor = mix(roughnessFactor, 0.28, winAA);`)
+        roughnessFactor = mix(roughnessFactor, 0.28, winAA);
+        roughnessFactor = mix(roughnessFactor, 0.35, uWet * 0.6);`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         float lit = step(0.6, h31(vec3(floor(cell), vSeed * 113.0)));
         vec3 warm = mix(vec3(1.0, 0.74, 0.42), vec3(0.85, 0.9, 1.0), step(0.8, h31(vec3(floor(cell) + 3.1, vSeed))));
-        totalEmissiveRadiance += winAA * mix(lit, 0.24, 1.0 - aa) * uNight * warm * 0.95;`);
+        totalEmissiveRadiance += winAA * mix(lit, 0.13, 1.0 - aa) * uNight * warm * 0.95;`);
   };
   return mat;
 }

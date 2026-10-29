@@ -357,8 +357,15 @@ def main():
             if h < 60:
                 h = 125.0 + 8.0 * len(westin_out)
             c = g.centroid
-            westin_out.append([round(c.x, 1), round(c.y, 1), round(math.sqrt(g.area / math.pi), 1), round(h, 1)])
-            westin_keys.add(rec["key"])
+            westin_out.append([round(c.x, 1), round(c.y, 1), round(math.sqrt(g.area / math.pi), 1), round(h, 1), rec["key"]])
+    # other round buildings can carry the name (e.g. the Westin Building on 6th);
+    # keep only the closest pair, which is the hotel's twin towers
+    if len(westin_out) > 2:
+        best = min(((a, b) for i, a in enumerate(westin_out) for b in westin_out[i + 1:]),
+                   key=lambda p: math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]))
+        westin_out = list(best)
+    westin_keys = {w[4] for w in westin_out}
+    westin_out = [w[:4] for w in westin_out]
     if len(westin_out) < 2:
         print("Westin towers not found as round OSM footprints - using approximate positions")
         westin_out = []

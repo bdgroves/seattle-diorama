@@ -27,22 +27,30 @@
     <div class="group-label">Ride along</div>
     <button data-follow="0"><i class="dot red"></i>Red train</button>
     <button data-follow="1"><i class="dot blue"></i>Blue train</button>
+    <div class="group-label">Seattle</div>
+    <button id="rain" class="toggle">Rain</button>
+    <button id="live" class="toggle">Live sun</button>
     <div class="group-label">Look</div>
     <button id="tilt" class="toggle">Miniature blur</button>
     <button id="lbl" class="toggle on">Labels</button>
+    <button id="orbit" class="toggle">Slow orbit</button>
     <div class="group-label">Film</div>
     <button id="play">▶ Play the film</button>
     <button id="rec"><i class="dot rec"></i>Record video</button>
+    <button id="photo">Photo · 4K</button>
+    <button id="share">Copy link to view</button>
   </nav>
 
   <footer class="card time">
     <input id="time" type="range" min="0" max="1" step="0.001" />
     <div class="ticks"><span>Morning</span><span>Golden hour</span><span>Dusk</span><span>Night</span></div>
+    <div id="clock"></div>
   </footer>
 
   <div id="meta"></div>
   <div id="fps"></div>
   <div id="loading">Building Seattle…</div>
+  <div id="toast"></div>
   <script type="module" src="./src/main.js"></script>
 </body>
 </html>

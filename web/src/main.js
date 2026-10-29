@@ -13,9 +13,12 @@ import { buildTrees, buildTraffic } from './life.js';
 import { buildSpaceNeedle, buildMonorail, westinBuildings, BEAM_TOP } from './landmarks.js';
 import { Sky } from './sky.js';
 import { makeFilm } from './film.js';
+import { buildRain, sunPosition, todFromElevation } from './weather.js';
+import { animateWater, buildFerry } from './bay.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const params = new URLSearchParams(location.search);
-const uniforms = { uNight: { value: 0 } };
+const uniforms = { uNight: { value: 0 }, uWet: { value: 0 }, uTime: { value: 0 } };
 
 // ------------------------------------------------------------------ renderer
 const canvas = document.getElementById('c');
@@ -28,6 +31,10 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 
 const scene = new THREE.Scene();
+// soft image-based light so glass and wet streets have something to reflect
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.3;
 
 // ------------------------------------------------------------------ camera
 const VIEW_H = 1500; // meters visible vertically at zoom 1
@@ -107,24 +114,43 @@ const ca = new THREE.Color(), cb = new THREE.Color();
 const lerpC = (a, b, t) => ca.set(a).lerp(cb.set(b), t).clone();
 let timeOfDay = params.has('t') ? parseFloat(params.get('t')) : 0.36;
 const sunDir = new THREE.Vector3();
+const weather = { rain: params.has('rain') ? 1 : 0, rainTarget: params.has('rain') ? 1 : 0, live: params.has('live'), liveSun: null };
+const GRAY_TOP = new THREE.Color('#8e99a4'), GRAY_BOT = new THREE.Color('#c9d0d5');
 function applyTime(t) {
   timeOfDay = t;
+  applyLighting();
+}
+function applyLighting() {
+  const t = timeOfDay, r = weather.rain;
   let i = 0;
   while (i < K.length - 2 && t > K[i + 1].t) i++;
   const a = K[i], b = K[i + 1];
   const f = THREE.MathUtils.clamp((t - a.t) / (b.t - a.t), 0, 1);
   const L = (k) => a[k] + (b[k] - a[k]) * f;
-  sunDir.setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - L('el')), THREE.MathUtils.degToRad(180 - L('az')));
-  sun.color.copy(lerpC(a.sun, b.sun, f));
-  sun.intensity = L('si');
-  hemi.color.copy(lerpC(a.sky, b.sky, f));
+  // live mode: the real sun over Seattle (moon-ish light when it is down)
+  const ls = weather.live && weather.liveSun && weather.liveSun.el > 0 ? weather.liveSun : null;
+  const el = ls ? Math.max(ls.el, 3) : L('el'), az = ls ? ls.az : L('az');
+  sunDir.setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - el), THREE.MathUtils.degToRad(180 - az));
+  sun.color.copy(lerpC(a.sun, b.sun, f)).lerp(GRAY_BOT, r * 0.6);
+  sun.intensity = L('si') * (1 - 0.72 * r);
+  hemi.color.copy(lerpC(a.sky, b.sky, f)).lerp(GRAY_BOT, r * 0.5);
   hemi.groundColor.copy(lerpC(a.gnd, b.gnd, f));
-  hemi.intensity = L('hi');
-  renderer.toneMappingExposure = L('exp');
-  sky.set(lerpC(a.top, b.top, f), lerpC(a.bot, b.bot, f));
-  uniforms.uNight.value = THREE.MathUtils.smoothstep(t, 0.6, 0.93);
-  bloom.strength = 0.15 + uniforms.uNight.value * 0.5;
-  bloom.threshold = 0.92 - uniforms.uNight.value * 0.15;
+  hemi.intensity = L('hi') * 0.78 * (1 + 0.15 * r);
+  renderer.toneMappingExposure = L('exp') * 0.94;
+  const night = THREE.MathUtils.smoothstep(t, 0.6, 0.93);
+  const top = lerpC(a.top, b.top, f), bot = lerpC(a.bot, b.bot, f);
+  sky.set(top.lerp(GRAY_TOP.clone().multiplyScalar(1 - 0.8 * night), r * 0.75), bot.lerp(GRAY_BOT.clone().multiplyScalar(1 - 0.8 * night), r * 0.75));
+  sky.fog.near = 3300 - 600 * r; sky.fog.far = 8200 - 2600 * r;
+  scene.environmentIntensity = (0.16 + 0.22 * r) * (1 - 0.75 * night);
+  uniforms.uWet.value = r;
+  if (ground.meshes.roads) {
+    ground.meshes.roads.material.roughness = 0.85 - 0.6 * r;
+    ground.meshes.roads.material.emissive.set('#ff9d4d').multiplyScalar(0.11 * night);   // sodium streetlight glow
+  }
+  if (ground.meshes.walks) ground.meshes.walks.material.roughness = 0.95 - 0.5 * r;
+  uniforms.uNight.value = night;
+  bloom.strength = 0.05 + uniforms.uNight.value * 0.5;
+  bloom.threshold = 1.2 - uniforms.uNight.value * 0.42;
   document.body.classList.toggle('night', t > 0.62);
 }
 
@@ -137,6 +163,7 @@ if (!res.ok) {
 }
 const data = await res.json();
 const [x0, y0, x1, y1] = data.meta.extent;
+sky.setExtent(data.meta.extent);
 const extent = { x0, y0, x1, y1 };
 
 const ground = buildGround(data, data.meta);
@@ -154,6 +181,12 @@ scene.add(needle.group);
 
 const mono = buildMonorail(data.monorail, uniforms);
 scene.add(mono.group);
+
+if (ground.waterMat) animateWater(ground.waterMat, uniforms);
+const ferry = buildFerry(data.water, data.meta.extent, uniforms);
+if (ferry) scene.add(ferry.group);
+const rain = buildRain();
+scene.add(rain.object);
 
 // ------------------------------------------------------------------ labels
 const labelRoot = document.getElementById('labels');
@@ -238,6 +271,28 @@ function updateSun() {
   sun.position.copy(shadowTmp).addScaledVector(sunDir, 2500);
 }
 
+// things every frame needs, live or in the film
+function tickWorld(t, dt) {
+  uniforms.uTime.value = t;
+  weather.rain += (weather.rainTarget - weather.rain) * Math.min(1, dt * 0.8);
+  if (Math.abs(weather.rain - weather.rainTarget) < 0.002) weather.rain = weather.rainTarget;
+  if (weather.live && filmT < 0 && !capture) {
+    const now = new Date();
+    weather.liveSun = sunPosition(now);
+    const afternoon = weather.liveSun.az > 180;
+    timeOfDay = todFromElevation(weather.liveSun.el, afternoon);
+    slider.value = timeOfDay;
+    clockEl.textContent = now.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' }) + ' in Seattle';
+  }
+  applyLighting();
+  needle.update(t);
+  mono.update(t);
+  ferry?.update(t);
+  traffic.update(dt);
+  rain.update(t, controls.target, camera.zoom, weather.rain * THREE.MathUtils.clamp((camera.zoom - 0.6) / 3, 0.2, 1), uniforms.uNight.value);
+  sky.update(camera, controls, { sun: sun.color, night: uniforms.uNight.value, time: t, rain: weather.rain });
+}
+
 // keep the camera over the diorama
 function clampTarget() {
   const t = controls.target;
@@ -250,8 +305,61 @@ function clampTarget() {
 
 // ------------------------------------------------------------------ UI
 const slider = document.getElementById('time');
+const clockEl = document.getElementById('clock');
 slider.value = timeOfDay;
-slider.addEventListener('input', () => applyTime(parseFloat(slider.value)));
+const toast = (msg) => {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 2200);
+};
+function setToggle(id, on) { document.getElementById(id).classList.toggle('on', on); }
+function setLive(on) {
+  weather.live = on; setToggle('live', on); document.body.classList.toggle('live', on);
+  if (on) toast('Sun and sky now follow the real clock in Seattle');
+}
+slider.addEventListener('input', () => { if (weather.live) setLive(false); applyTime(parseFloat(slider.value)); });
+document.getElementById('rain').addEventListener('click', () => {
+  weather.rainTarget = weather.rainTarget > 0.5 ? 0 : 1; setToggle('rain', weather.rainTarget > 0.5);
+  if (weather.rainTarget) toast('Classic Seattle drizzle');
+});
+document.getElementById('live').addEventListener('click', () => setLive(!weather.live));
+setToggle('rain', weather.rainTarget > 0.5);
+if (weather.live) setLive(true);
+document.getElementById('orbit').addEventListener('click', () => {
+  controls.autoRotate = !controls.autoRotate; controls.autoRotateSpeed = 0.6; setToggle('orbit', controls.autoRotate);
+});
+
+// share the exact view as a link
+function viewParams() {
+  const sph = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
+  const p = new URLSearchParams();
+  p.set('cam', [controls.target.x, controls.target.z, sph.theta, sph.phi, camera.zoom].map((n) => +n.toFixed(3)).join(','));
+  p.set('t', timeOfDay.toFixed(3));
+  if (weather.rainTarget) p.set('rain', '1');
+  if (weather.live) p.set('live', '1');
+  if (!tiltOn) p.set('tilt', '0');
+  return p;
+}
+document.getElementById('share').addEventListener('click', async () => {
+  const url = `${location.origin}${location.pathname}?${viewParams()}`;
+  history.replaceState(null, '', url);
+  try { await navigator.clipboard.writeText(url); toast('Link to this exact view copied'); } catch { toast('Link is in the address bar'); }
+});
+
+// 4K still: re-render at higher resolution and download a PNG
+document.getElementById('photo').addEventListener('click', () => {
+  const pr = renderer.getPixelRatio();
+  const scale = Math.max(1, 3840 / innerWidth);
+  renderer.setPixelRatio(scale); composer.setPixelRatio(scale);
+  updateSun(); composer.render();
+  canvas.toBlob((blob) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `seattle-diorama-${Date.now()}.png`; a.click();
+    renderer.setPixelRatio(pr); composer.setPixelRatio(pr);
+    toast('Saved a 4K still');
+  }, 'image/png');
+});
 document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => flyTo(b.dataset.view)));
 document.querySelectorAll('[data-follow]').forEach((b) => b.addEventListener('click', () => {
   tween = null;
@@ -283,6 +391,10 @@ addEventListener('resize', () => {
 let simT = params.has('sim') ? parseFloat(params.get('sim')) : 0;
 applyTime(timeOfDay);
 setView(VIEWS[params.get('view')] || VIEWS.overview);
+if (params.has('cam')) {
+  const [cx, cz, az, polar, zoom] = params.get('cam').split(',').map(Number);
+  if ([cx, cz, az, polar, zoom].every(Number.isFinite)) setView({ target: new THREE.Vector3(cx, 0, cz), az, polar, zoom });
+}
 if (params.has('follow')) { // e.g. ?follow=0 rides along with the Red train
   follow = mono.trains[parseInt(params.get('follow'), 10) || 0];
   mono.update(simT);
@@ -297,12 +409,10 @@ let filmT = -1;            // < 0 when not playing
 let recorder = null;
 function filmFrame(ft, dt) {
   simT = film.simOffset + ft;
-  needle.update(simT);
-  mono.update(simT);
-  traffic.update(dt);
   const shot = film.at(ft);
-  applyTime(shot.tod);
+  timeOfDay = shot.tod;
   setView(shot);
+  tickWorld(simT, dt);
   updateSun();
   composer.render();
 }
@@ -345,7 +455,7 @@ const fpsEl = document.getElementById('fps');
 let frames = 0, fpsT = 0, total = 0;
 const stillFrames = params.has('still') ? parseInt(params.get('still') || '3', 10) : 0; // for screenshots
 const capture = params.get('film') === 'capture';
-if (capture) document.body.classList.add('film');
+if (capture || params.get('ui') === '0') document.body.classList.add('film');
 if (!capture) renderer.setAnimationLoop(() => {
   if (stillFrames && ++total > stillFrames) { renderer.setAnimationLoop(null); document.body.classList.add('still-done'); return; }
   timer.update();
@@ -355,9 +465,6 @@ if (!capture) renderer.setAnimationLoop(() => {
     if (filmT > film.duration) endFilm(); else { filmFrame(filmT, dt); return; }
   }
   simT += dt;
-  needle.update(simT);
-  mono.update(simT);
-  traffic.update(dt);
   stepTween(dt);
   if (follow && !tween) {
     const d = follow.pos.clone().sub(controls.target);
@@ -365,8 +472,9 @@ if (!capture) renderer.setAnimationLoop(() => {
   } else if (follow && tween) {
     tween.goal.target.copy(follow.pos);
   }
-  controls.update();
+  controls.update(dt);
   clampTarget();
+  tickWorld(simT, dt);
   updateSun();
   composer.render();
   updateLabels();
