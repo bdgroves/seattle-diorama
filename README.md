@@ -1,6 +1,6 @@
 # Seattle Diorama
 
-**[▶ Open the live diorama](https://bdgroves.github.io/seattle-diorama/)**
+**[▶ Open the live diorama](https://brooksgroves.com/seattle-diorama/)** · [Read the story](https://brooksgroves.com/blog/seattle-diorama-post.html)
 
 A hand-crafted-looking, fully procedural 3D diorama of Seattle, from the Space
 Needle down 5th Avenue to Westlake. It is built entirely from open map data and
