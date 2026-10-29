@@ -1,0 +1,39 @@
+[workspace]
+name = "seattle-diorama"
+version = "0.1.0"
+description = "Stylized 3D diorama of Seattle Center to Westlake: Space Needle, the Monorail and the Westin towers"
+authors = ["Brooks Groves"]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64", "osx-arm64", "osx-64"]
+
+[dependencies]
+python = "3.12.*"
+nodejs = ">=22"
+requests = ">=2.31"
+shapely = ">=2.0"
+playwright = ">=1.45"
+ffmpeg = "*"
+
+[tasks]
+# 1. Pull OpenStreetMap features for the study area (cached in data/raw/)
+fetch = "python pipeline/fetch.py"
+# 2. Turn raw OSM into the compact scene the viewer loads (web/public/data/scene.json)
+build = "python pipeline/build.py"
+# fetch + build in one go
+city = { depends-on = ["fetch", "build"] }
+# re-fetch even if a cached download exists
+refetch = "python pipeline/fetch.py --force"
+
+# Web viewer
+web-install = { cmd = "npm install", cwd = "web" }
+dev = { cmd = "npm run dev", cwd = "web", depends-on = ["web-install"] }
+bundle = { cmd = "npm run build", cwd = "web", depends-on = ["web-install"] }
+preview = { cmd = "npm run preview", cwd = "web", depends-on = ["bundle"] }
+
+# The film: scripted fly-through rendered frame by frame -> film/seattle-diorama.mp4
+film-setup = "python -m playwright install chromium"
+film = { cmd = "python pipeline/film.py", depends-on = ["bundle"] }
+
+# Synthetic test city (no network needed) for checking the pipeline + renderer.
+# Not real Seattle - run `pixi run city` afterwards to replace it with OSM data.
+demo = "python pipeline/make_test_osm.py && python pipeline/build.py --input data/raw/osm_test.json"

@@ -1,0 +1,7 @@
+.pixi/
+data/raw/
+web/node_modules/
+web/dist/
+web/public/data/scene.json
+__pycache__/
+film/

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Seattle Diorama</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body class="labels-on">
+  <canvas id="c"></canvas>
+  <div id="labels"></div>
+
+  <header class="card title">
+    <div class="eyebrow">Seattle, Washington</div>
+    <h1>Seattle Center <em>to</em> Westlake</h1>
+    <p>The Needle, the Monorail and the Westin, rebuilt from open map data.</p>
+  </header>
+
+  <nav class="card views">
+    <div class="group-label">Fly to</div>
+    <button data-view="overview">Overview</button>
+    <button data-view="needle">Space Needle</button>
+    <button data-view="westin">The Westin</button>
+    <div class="group-label">Ride along</div>
+    <button data-follow="0"><i class="dot red"></i>Red train</button>
+    <button data-follow="1"><i class="dot blue"></i>Blue train</button>
+    <div class="group-label">Look</div>
+    <button id="tilt" class="toggle">Miniature blur</button>
+    <button id="lbl" class="toggle on">Labels</button>
+    <div class="group-label">Film</div>
+    <button id="play">▶ Play the film</button>
+    <button id="rec"><i class="dot rec"></i>Record video</button>
+  </nav>
+
+  <footer class="card time">
+    <input id="time" type="range" min="0" max="1" step="0.001" />
+    <div class="ticks"><span>Morning</span><span>Golden hour</span><span>Dusk</span><span>Night</span></div>
+  </footer>
+
+  <div id="meta"></div>
+  <div id="fps"></div>
+  <div id="loading">Building Seattle…</div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
