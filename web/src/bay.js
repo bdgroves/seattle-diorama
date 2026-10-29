@@ -17,12 +17,13 @@ export function animateWater(material, uniforms) {
       .replace('#include <color_fragment>', `#include <color_fragment>
         vec2 wp = vWPos.xz;
         float w = wv(wp, vec2(0.8, 0.6), 0.09, 1.3) + wv(wp, vec2(-0.3, 0.95), 0.13, 1.7) + 0.6 * wv(wp, vec2(0.95, -0.2), 0.31, 2.3);
-        diffuseColor.rgb *= 0.93 + 0.05 * w;`)
+        diffuseColor.rgb *= 0.95 + 0.03 * w;`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         vec3 wn = vec3(
-          0.10 * cos(dot(vWPos.xz, vec2(0.8, 0.6)) * 0.09 + uTime * 1.3) + 0.07 * cos(dot(vWPos.xz, vec2(0.95, -0.2)) * 0.31 + uTime * 2.3),
+          0.035 * cos(dot(vWPos.xz, vec2(0.8, 0.6)) * 0.09 + uTime * 1.3) + 0.025 * cos(dot(vWPos.xz, vec2(0.95, -0.2)) * 0.31 + uTime * 2.3)
+            + 0.02 * cos(dot(vWPos.xz, vec2(0.31, 0.95)) * 0.53 + uTime * 2.9),
           0.0,
-          0.10 * cos(dot(vWPos.xz, vec2(-0.3, 0.95)) * 0.13 + uTime * 1.7));
+          0.035 * cos(dot(vWPos.xz, vec2(-0.3, 0.95)) * 0.13 + uTime * 1.7) + 0.02 * cos(dot(vWPos.xz, vec2(-0.9, 0.4)) * 0.47 + uTime * 2.6));
         normal = normalize(normal + (viewMatrix * vec4(wn, 0.0)).xyz);`);
   };
   material.needsUpdate = true;
@@ -36,40 +37,96 @@ function paint(g, hex) {
   return g.toNonIndexed();
 }
 
+// Jumbo Mark II-style double-ended ferry, ~140 m x 27 m. Long axis on +X.
+// Returns { body, glass } geometries: glass gets its own material so the
+// cabin windows can glow at night.
 function ferryGeometry() {
-  // Jumbo-class double-ender, ~140 m. Long axis on +X.
   const L = 140, W = 27;
-  const hullShape = new THREE.Shape();
-  hullShape.moveTo(-L / 2, 0);
-  hullShape.quadraticCurveTo(-L / 2 - 6, W / 4, -L / 2 + 4, W / 2);
-  hullShape.lineTo(L / 2 - 4, W / 2);
-  hullShape.quadraticCurveTo(L / 2 + 6, W / 4, L / 2, 0);
-  hullShape.quadraticCurveTo(L / 2 + 6, -W / 4, L / 2 - 4, -W / 2);
-  hullShape.lineTo(-L / 2 + 4, -W / 2);
-  hullShape.quadraticCurveTo(-L / 2 - 6, -W / 4, -L / 2, 0);
-  const deck = (h, inset, hex, y) => {
-    const s = new THREE.Shape(hullShape.getPoints(24).map((p) => new THREE.Vector2(p.x * (1 - inset / L * 2), p.y * (1 - inset / W * 2))));
-    const g = new THREE.ExtrudeGeometry(s, { depth: h, bevelEnabled: false });
-    g.rotateX(-Math.PI / 2); g.translate(0, y, 0);
+  // plan shape: straight sides, tapered rounded ends (identical at both ends)
+  const plan = (inset) => {
+    const l = L / 2 - inset, w = W / 2 - inset, taper = 20;
+    const s = new THREE.Shape();
+    s.moveTo(-l + taper, -w);
+    s.lineTo(l - taper, -w);
+    s.bezierCurveTo(l - 6, -w, l, -w * 0.55, l, 0);
+    s.bezierCurveTo(l, w * 0.55, l - 6, w, l - taper, w);
+    s.lineTo(-l + taper, w);
+    s.bezierCurveTo(-l + 6, w, -l, w * 0.55, -l, 0);
+    s.bezierCurveTo(-l, -w * 0.55, -l + 6, -w, -l + taper, -w);
+    return s;
+  };
+  const slab = (inset, y0, y1, hex) => {
+    const g = new THREE.ExtrudeGeometry(plan(inset), { depth: y1 - y0, bevelEnabled: false, curveSegments: 10 });
+    g.rotateX(-Math.PI / 2); g.translate(0, y0, 0);
     return paint(g, hex);
   };
-  const parts = [
-    deck(3.0, 0, '#f4f2ec', 0),         // hull
-    deck(1.2, 0.3, '#2f7a4f', 3.0),     // WSF green stripe
-    deck(4.5, 1.2, '#f4f2ec', 4.2),     // car deck
-    deck(4.0, 10, '#f6f4ef', 8.7),      // passenger deck
-    deck(1.2, 10.5, '#3a4654', 12.7),   // window band
-    deck(2.5, 30, '#f4f2ec', 13.9),     // wheelhouse level
-  ];
-  for (const sx of [-1, 1]) {           // twin wheelhouses, one at each end
-    parts.push(paint(new THREE.BoxGeometry(8, 3.2, 14).translate(sx * 52, 18, 0), '#f4f2ec'));
-    parts.push(paint(new THREE.BoxGeometry(8.2, 1.1, 14.2).translate(sx * 52, 18.7, 0), '#2c3640'));
+  const box = (sx, sy, sz, x, y, z, hex) => paint(new THREE.BoxGeometry(sx, sy, sz).translate(x, y, z), hex);
+  const WHITE = '#f3f2ee', GREEN = '#1f6b45', DARK = '#26303a', DECK = '#9aa19c';
+  const body = [], glass = [];
+
+  body.push(slab(0, -0.5, 2.6, '#e9e8e2'));          // hull at the waterline
+  body.push(slab(-0.05, 2.6, 3.6, GREEN));           // the WSF green stripe
+  body.push(slab(0, 3.6, 10.2, WHITE));              // car decks
+  // open vehicle bays along the sides and at both ends
+  for (const side of [-1, 1]) {
+    for (let x = -50; x <= 50; x += 12.5) body.push(box(9.5, 3.2, 0.4, x, 6.6, side * (W / 2 + 0.05), DARK));
   }
-  parts.push(paint(new THREE.CylinderGeometry(2.4, 2.8, 7, 12).translate(-6, 19.8, 0), '#2f7a4f'));
-  parts.push(paint(new THREE.CylinderGeometry(2.4, 2.8, 7, 12).translate(6, 19.8, 0), '#2f7a4f'));
-  return BGU.mergeGeometries(parts);
+  for (const end of [-1, 1]) body.push(box(0.4, 4.6, 14, end * (L / 2 - 0.1), 6.0, 0, '#3a434c'));
+  body.push(slab(-0.6, 10.2, 10.6, DECK));          // promenade deck edge
+  body.push(slab(9, 10.6, 15.2, WHITE));             // passenger cabin
+  glass.push(slab(8.85, 11.4, 13.8, DARK));          // continuous cabin windows
+  body.push(slab(8.4, 15.2, 15.6, DECK));            // sun deck
+  body.push(box(56, 3.2, W - 26, 0, 17.2, 0, WHITE)); // upper superstructure
+  glass.push(box(56.2, 1.2, W - 25.8, 0, 17.6, 0, DARK));
+  // pilothouses at both ends with wrap-around windows, plus masts and radar
+  for (const end of [-1, 1]) {
+    body.push(box(9, 3.4, 13, end * 46, 17.3, 0, WHITE));
+    glass.push(box(9.2, 1.4, 13.2, end * 46, 17.9, 0, DARK));
+    body.push(box(9.6, 0.4, 13.6, end * 46, 19.2, 0, WHITE));
+    body.push(paint(new THREE.CylinderGeometry(0.25, 0.3, 7, 6).translate(end * 44, 22.5, 0), WHITE));
+    body.push(box(0.4, 0.3, 4.5, end * 44, 24.2, 0, DARK));
+  }
+  // twin oval stacks: white, green band, black cap
+  for (const x of [-9, 9]) {
+    const stack = (y0, y1, hex) => {
+      const c = new THREE.CylinderGeometry(2.6, 2.9, y1 - y0, 20);
+      c.scale(1.4, 1, 0.75); c.translate(x, (y0 + y1) / 2, 0);
+      return paint(c, hex);
+    };
+    body.push(stack(18.8, 23.5, WHITE), stack(23.5, 24.6, GREEN), stack(24.6, 25.4, '#1b1d20'));
+  }
+  // life-raft canisters along the rails
+  for (const side of [-1, 1]) {
+    for (let x = -36; x <= 36; x += 6) {
+      if (Math.abs(x) < 4) continue;
+      const c = new THREE.CylinderGeometry(0.55, 0.55, 1.5, 8);
+      c.rotateX(Math.PI / 2); c.translate(x, 16.2, side * (W / 2 - 9.6));
+      body.push(paint(c, '#e8e5dc'));
+    }
+  }
+  return { body: BGU.mergeGeometries(body), glass: BGU.mergeGeometries(glass) };
 }
 
+// V-shaped foam wake (centre churn + Kelvin arms), drawn behind the stern.
+function wakeMaterial(uniforms) {
+  return new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    uniforms: { uTime: uniforms.uTime, uAmount: { value: 1 }, uNight: uniforms.uNight },
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `
+      uniform float uTime, uAmount, uNight; varying vec2 vUv;
+      float h(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5); }
+      void main() {
+        float x = 1.0 - vUv.x;           // 0 at the stern, 1 far behind
+        float y = vUv.y - 0.5;
+        float core = exp(-pow(y / (0.04 + 0.12 * x), 2.0)) * (1.0 - x);
+        float arm = exp(-pow((abs(y) - 0.42 * x) / 0.018, 2.0)) * (1.0 - x) * smoothstep(0.0, 0.08, x);
+        float fizz = 0.65 + 0.35 * h(floor(vec2(x * 90.0 - uTime * 6.0, y * 40.0)));
+        float a = (core * 0.85 + arm * 0.55) * fizz * uAmount;
+        gl_FragColor = vec4(mix(vec3(1.0), vec3(0.55, 0.62, 0.75), uNight), a);
+      }`,
+  });
+}
 function insideAny(x, y, polys) {
   for (const rings of polys) {
     let inside = false;
@@ -112,13 +169,20 @@ function findLane(water, ext) {
 export function buildFerry(water, ext, uniforms) {
   const lane = findLane(water || [], ext);
   if (!lane) return null;
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6,
-    emissive: new THREE.Color('#ffd9a0'), emissiveIntensity: 0 });
-  const ship = new THREE.Mesh(ferryGeometry(), mat);
-  ship.castShadow = true; ship.receiveShadow = true;
-  // a soft foam wake behind the hull
-  const wakeMat = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.35, depthWrite: false });
-  const wake = new THREE.Mesh(new THREE.PlaneGeometry(90, 18).rotateX(-Math.PI / 2), wakeMat);
+  const geo = ferryGeometry();
+  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55 });
+  const glassMat = new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, roughness: 0.15, metalness: 0.3,
+    emissive: new THREE.Color('#ffd49a'), emissiveIntensity: 0 });
+  const ship = new THREE.Group();
+  const hull = new THREE.Mesh(geo.body, mat);
+  const glass = new THREE.Mesh(geo.glass, glassMat);
+  hull.castShadow = hull.receiveShadow = true;
+  ship.add(hull, glass);
+  // foam wake: plane whose u runs from the stern backwards
+  const wakeGeo = new THREE.PlaneGeometry(180, 70).rotateX(-Math.PI / 2);
+  wakeGeo.translate(-90, 0, 0); // stern at local x=0, trailing to -x
+  const wakeMat = wakeMaterial(uniforms);
+  const wake = new THREE.Mesh(wakeGeo, wakeMat);
   const group = new THREE.Group();
   group.add(ship, wake);
   const L = lane.len - 160, speed = 9;  // ~17 knots
@@ -136,11 +200,14 @@ export function buildFerry(water, ext, uniforms) {
       const x = lane.ax + (lane.bx - lane.ax) * k, y = lane.ay + (lane.by - lane.ay) * k;
       ship.position.set(x, 0.2 + Math.sin(t * 0.8) * 0.15, -y);
       ship.rotation.set(0, heading, Math.sin(t * 0.6) * 0.004);
-      const moving = s > 0.001 && s < 0.999;
-      wake.visible = moving;
-      wake.position.set(x - Math.cos(heading) * dir * 105, 0.25, -(y - Math.sin(heading) * dir * 105));
-      wake.rotation.y = heading;
-      mat.emissiveIntensity = uniforms.uNight.value * 0.35;
+      // wake strength follows speed (derivative of the eased position)
+      const speedNow = 6 * s * (1 - s);
+      wakeMat.uniforms.uAmount.value = Math.min(1, speedNow * 1.2);
+      wake.visible = speedNow > 0.02;
+      const hd = dir > 0 ? heading : heading + Math.PI;   // direction of travel
+      wake.position.set(x - Math.cos(hd) * 70, 0.3, -(y - Math.sin(hd) * 70));
+      wake.rotation.y = hd;
+      glassMat.emissiveIntensity = uniforms.uNight.value * 1.4;
     },
   };
 }

@@ -95,3 +95,5 @@ body.live #clock { display: block; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 body.night #toast { background: #e9b46a; color: #1a1d2b; }
 .views { max-height: calc(100vh - 40px); overflow-y: auto; scrollbar-width: none; }
+
+.label.minor b { font-size: 11px; padding: 4px 7px 3px; background: rgba(255,252,247,.82); }

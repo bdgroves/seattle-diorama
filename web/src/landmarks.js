@@ -360,3 +360,126 @@ export function buildMonorail(lines, uniforms) {
 }
 
 export { BEAM_TOP };
+
+// =================================================================== The Spheres
+// Amazon's three glass conservatories at 7th & Lenora: geodesic steel lattice,
+// glass skin and a small cloud forest inside that glows at night.
+export function buildSpheres(list, uniforms) {
+  const g = new THREE.Group();
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: '#bcd6d0', transparent: true, opacity: 0.28, roughness: 0.06, metalness: 0.25,
+    depthWrite: false, side: THREE.DoubleSide, emissive: new THREE.Color('#ffe6b0'), emissiveIntensity: 0,
+  });
+  const frameMat = new THREE.LineBasicMaterial({ color: '#56606a' });
+  const plantMat = new THREE.MeshStandardMaterial({ roughness: 0.85, flatShading: true,
+    emissive: new THREE.Color('#2d5a2a'), emissiveIntensity: 0 });
+  const baseMat = new THREE.MeshStandardMaterial({ color: '#cfcac0', roughness: 0.9 });
+  const leaves = [];
+  const rand = mulberry(2111);
+
+  for (const [x, y, r, h] of list) {
+    const cy = h - r;                               // sphere centre height
+    const cut = Math.acos(THREE.MathUtils.clamp(-cy / r, -1, 1));
+    const glass = new THREE.Mesh(new THREE.SphereGeometry(r, 48, 32, 0, Math.PI * 2, 0, cut), glassMat);
+    glass.position.set(x, cy, -y);
+    glass.renderOrder = 5;
+    g.add(glass);
+
+    // steel lattice: edges of a geodesic sphere, clipped at the ground
+    const edges = new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(r * 1.004, 3), 1);
+    const p = edges.attributes.position.array, keep = [];
+    for (let i = 0; i < p.length; i += 6) {
+      if (p[i + 1] + cy > 0.2 && p[i + 4] + cy > 0.2) keep.push(...p.slice(i, i + 6));
+    }
+    const lat = new THREE.BufferGeometry();
+    lat.setAttribute('position', new THREE.Float32BufferAttribute(keep, 3));
+    const lines = new THREE.LineSegments(lat, frameMat);
+    lines.position.copy(glass.position);
+    g.add(lines);
+
+    // a concrete ring where the dome meets the ground
+    const footR = Math.sqrt(Math.max(0, r * r - cy * cy)) || r;
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(footR + 0.8, footR + 1.2, 0.8, 48).translate(x, 0.4, -y), baseMat);
+    ring.receiveShadow = true;
+    g.add(ring);
+
+    // cloud-forest planting inside
+    const n = Math.round(r * 1.6);
+    for (let i = 0; i < n; i++) {
+      const a = rand() * Math.PI * 2, d = Math.sqrt(rand()) * footR * 0.8;
+      const yy = 1.5 + rand() * (h * 0.55);
+      const maxR = Math.sqrt(Math.max(0, r * r - (yy - cy) ** 2));
+      const dd = Math.min(d, maxR * 0.8);
+      leaves.push({ x: x + Math.cos(a) * dd, y: y + Math.sin(a) * dd, h: yy, s: 1.6 + rand() * 2.6 });
+    }
+  }
+  const im = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), plantMat, Math.max(1, leaves.length));
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), col = new THREE.Color();
+  const GREENS = ['#2f7d3a', '#3f9a45', '#5bb04f', '#24683a', '#7cbf5a'];
+  leaves.forEach((l, i) => {
+    sc.set(l.s, l.s * 0.8, l.s);
+    m.compose(new THREE.Vector3(l.x, l.h, -l.y), q, sc);
+    im.setMatrixAt(i, m);
+    im.setColorAt(i, col.set(GREENS[i % GREENS.length]));
+  });
+  im.count = leaves.length;
+  g.add(im);
+
+  return {
+    group: g,
+    update() {
+      const n = uniforms.uNight.value;
+      glassMat.emissiveIntensity = n * 0.55;
+      glassMat.opacity = 0.28 + n * 0.12;
+      plantMat.emissiveIntensity = n * 0.8;
+    },
+  };
+}
+
+// =================================================================== Public art
+// Markers for OpenStreetMap tourism=artwork pieces. Deliberately abstract:
+// generic forms on plinths, not replicas of the actual works.
+export function buildArtworks(list) {
+  const g = new THREE.Group();
+  if (!list.length) return g;
+  const forms = [
+    new THREE.BoxGeometry(1.2, 7, 3).translate(0, 4.2, 0),                      // tall slab
+    new THREE.TorusGeometry(2.6, 0.45, 8, 24, Math.PI).translate(0, 0.7, 0),   // arch
+    new THREE.SphereGeometry(1.7, 16, 12).translate(0, 2.6, 0),                 // orb
+    new THREE.ConeGeometry(1.6, 6, 4).translate(0, 3.7, 0),                     // obelisk
+  ];
+  const COLORS = ['#a24a2b', '#c4372c', '#ecebe6', '#8a6a3c', '#59656f', '#e0a43a'];
+  const plinth = new THREE.BoxGeometry(3.6, 0.7, 3.6).translate(0, 0.35, 0);
+  const mats = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.2 });
+  const buckets = forms.map(() => []);
+  for (const a of list) buckets[Math.floor(a[2] * 997) % forms.length].push(a);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), col = new THREE.Color();
+  buckets.forEach((items, k) => {
+    if (!items.length) return;
+    const im = new THREE.InstancedMesh(forms[k], mats, items.length);
+    items.forEach((a, i) => {
+      const s = 1.3 + (a[2] * 7.3 % 1) * 0.9;
+      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a[2] * 40);
+      sc.set(s, s, s);
+      m.compose(new THREE.Vector3(a[0], 0.6, -a[1]), q, sc);
+      im.setMatrixAt(i, m);
+      im.setColorAt(i, col.set(COLORS[Math.floor(a[2] * 131) % COLORS.length]));
+    });
+    im.castShadow = true;
+    g.add(im);
+  });
+  const pm = new THREE.InstancedMesh(plinth, new THREE.MeshStandardMaterial({ color: '#d9d4ca', roughness: 0.9 }), list.length);
+  list.forEach((a, i) => { m.makeTranslation(a[0], 0.15, -a[1]); pm.setMatrixAt(i, m); });
+  pm.receiveShadow = true;
+  g.add(pm);
+  return g;
+}
+
+function mulberry(a) {
+  return () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}

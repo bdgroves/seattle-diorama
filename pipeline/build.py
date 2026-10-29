@@ -277,7 +277,7 @@ def main():
             nm = (t.get("name", "") + " " + t.get("brand", "")).lower()
             # The Westin Seattle hotel towers are round; the Westin Building
             # (Exchange) on 6th Ave is not, so leave it as an ordinary building.
-            if "westin" in nm and not re.search(r"building|exchange|data", nm):
+            if "westin" in nm and not re.search(r"building|exchange|data|element|parking|garage", nm):
                 westin.append(rec)
             if re.search(r"\bspheres?\b", nm):
                 spheres.append(rec)
@@ -367,12 +367,16 @@ def main():
 
     # ---------------- Westin towers
     westin_out, westin_keys = [], set()
+    # OSM names the hotel's towers ("Westin Seattle North/South Tower"); use those when present
+    towers = [r for r in westin if "tower" in r["tags"].get("name", "").lower()]
+    if len(towers) >= 2:
+        westin = towers
     for rec in westin:
         g = rec["geom"]
         if isinstance(g, MultiPolygon):
             continue
         compact = 4 * math.pi * g.area / (g.length ** 2) if g.length else 0
-        if compact > 0.78 and 400 < g.area < 3000:
+        if (len(towers) >= 2 or compact > 0.78) and 300 < g.area < 3500:
             h, _, _ = building_heights(rec["tags"], rec["key"], g.area)
             if h < 60:
                 h = 125.0 + 8.0 * len(westin_out)
@@ -493,8 +497,12 @@ def main():
             d += rnd.uniform(9, 15)
     park_blocked = prep(unary_union([foot_u.buffer(3.0), path_u.buffer(1.0), road_u.buffer(1.5),
                                      water_u.buffer(1.5)]))
+    # the Olympic Sculpture Park is mostly open meadow: plant it sparsely
+    meadow = unary_union([g for n, g in named if "sculpture park" in n]) if named else Polygon()
     for p in polys_of(park_u.intersection(CLIP)):
         n = int(p.area / 260)
+        if not meadow.is_empty and p.intersection(meadow).area > 0.4 * p.area:
+            n = int(n * 0.2)
         minx, miny, maxx, maxy = p.bounds
         pp = prep(p)
         placed = 0

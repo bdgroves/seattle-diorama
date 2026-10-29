@@ -10,7 +10,7 @@ import { VerticalTiltShiftShader } from 'three/addons/shaders/VerticalTiltShiftS
 
 import { buildBuildings, buildGround, toV3 } from './city.js';
 import { buildTrees, buildTraffic } from './life.js';
-import { buildSpaceNeedle, buildMonorail, westinBuildings, BEAM_TOP } from './landmarks.js';
+import { buildSpaceNeedle, buildMonorail, westinBuildings, buildSpheres, buildArtworks, BEAM_TOP } from './landmarks.js';
 import { Sky } from './sky.js';
 import { makeFilm } from './film.js';
 import { buildRain, sunPosition, todFromElevation } from './weather.js';
@@ -182,6 +182,10 @@ scene.add(needle.group);
 const mono = buildMonorail(data.monorail, uniforms);
 scene.add(mono.group);
 
+const spheres = data.landmarks.spheres?.length ? buildSpheres(data.landmarks.spheres, uniforms) : null;
+if (spheres) scene.add(spheres.group);
+scene.add(buildArtworks(data.artworks || []));
+
 if (ground.waterMat) animateWater(ground.waterMat, uniforms);
 const ferry = buildFerry(data.water, data.meta.extent, uniforms);
 if (ferry) scene.add(ferry.group);
@@ -191,12 +195,12 @@ scene.add(rain.object);
 // ------------------------------------------------------------------ labels
 const labelRoot = document.getElementById('labels');
 const labels = [];
-function addLabel(text, sub, pos) {
+function addLabel(text, sub, pos, minZoom = 0) {
   const el = document.createElement('div');
-  el.className = 'label';
+  el.className = 'label' + (minZoom ? ' minor' : '');
   el.innerHTML = `<b>${text}</b>${sub ? `<span>${sub}</span>` : ''}`;
   labelRoot.appendChild(el);
-  labels.push({ el, pos });
+  labels.push({ el, pos, minZoom });
 }
 addLabel('Space Needle', '1962 · 605 ft', toV3(nx, ny, 196));
 const w0 = data.landmarks.westin;
@@ -208,12 +212,13 @@ const m0 = mono.trains[0].path;
 const ms = m0.at(12), me = m0.at(m0.len - 10);
 addLabel('Seattle Center Stn', 'Monorail', toV3(ms.x, ms.y, BEAM_TOP + 22));
 addLabel('Westlake Stn', 'Monorail', toV3(me.x, me.y, BEAM_TOP + 22));
+for (const [text, sub, px, py, ph] of data.places || []) addLabel(text, sub, toV3(px, py, ph), 1.6);
 const v = new THREE.Vector3();
 function updateLabels() {
   const show = document.body.classList.contains('labels-on');
   for (const l of labels) {
     v.copy(l.pos).project(camera);
-    const off = Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05;
+    const off = Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05 || camera.zoom < l.minZoom;
     l.el.style.display = show && !off ? '' : 'none';
     if (!off) l.el.style.transform = `translate(${(v.x * 0.5 + 0.5) * innerWidth}px, ${(-v.y * 0.5 + 0.5) * innerHeight}px)`;
   }
@@ -223,7 +228,13 @@ function updateLabels() {
 const needleV = toV3(nx, ny, 60);
 const westinV = w0.length ? toV3(w0[0][0], w0[0][1], 40) : needleV;
 const centerV = needleV.clone().lerp(westinV, 0.45).setY(0);
+const sph = data.landmarks.spheres || [];
+const spheresV = sph.length ? toV3(sph.reduce((a, b) => a + b[0], 0) / sph.length, sph.reduce((a, b) => a + b[1], 0) / sph.length, 15) : westinV;
+const ospP = (data.places || []).find((p) => /sculpture/i.test(p[0]));
+const ospV = ospP ? toV3(ospP[2], ospP[3], 5) : centerV;
 const VIEWS = {
+  spheres: { target: spheresV, az: 0.9, polar: 0.55, zoom: 10 },
+  osp: { target: ospV, az: 0.3, polar: 1.0, zoom: 5.5 },
   overview: { target: centerV, az: 0.75, polar: 0.98, zoom: 1.4 },
   needle: { target: needleV, az: -0.55, polar: 1.12, zoom: 4.6 },
   westin: { target: westinV, az: 0.35, polar: 1.05, zoom: 5.2 },
@@ -287,6 +298,7 @@ function tickWorld(t, dt) {
   applyLighting();
   needle.update(t);
   mono.update(t);
+  spheres?.update(t);
   ferry?.update(t);
   traffic.update(dt);
   rain.update(t, controls.target, camera.zoom, weather.rain * THREE.MathUtils.clamp((camera.zoom - 0.6) / 3, 0.2, 1), uniforms.uNight.value);
@@ -404,7 +416,7 @@ loading.remove();
 document.body.classList.add('ready');
 
 // ------------------------------------------------------------------ film
-const film = makeFilm({ VIEWS, mono, needleV, westinV, centerV });
+const film = makeFilm({ VIEWS, mono, needleV, westinV, centerV, spheresV, ospV });
 let filmT = -1;            // < 0 when not playing
 let recorder = null;
 function filmFrame(ft, dt) {

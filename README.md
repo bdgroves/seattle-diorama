@@ -22,14 +22,22 @@ a few hundred lines of shader code, and runs at 60 fps in the browser.
   at the stations. Click **Ride along** to follow one.
 - **The Westin's twin towers.** The ribbed "corncob" cylinders on 5th Avenue,
   placed from their real OSM footprints.
+- **The Spheres.** Amazon's three glass conservatories at 7th & Lenora, with a
+  geodesic steel lattice and a cloud forest inside that glows after dark.
+- **Olympic Sculpture Park and public art.** The park is kept open meadow down
+  to the bay. About 100 pieces of public art mapped in OSM appear as small
+  abstract markers on plinths. They show where each piece stands; they are not
+  replicas of the works.
 - **The mountains.** Rainier rises behind downtown when you face south-east,
   the Olympics stand across the Sound, and Baker sits to the north. The
   panorama turns with the camera and goes rosy at sunset.
 - **Seattle weather.** Toggle **Rain** for drizzle, wet streets and a lower
   sky, and **Live sun** to light the city by where the sun really is over
   Seattle right now.
-- **Life.** About 8,700 trees in late-October color, plus cars, Metro buses,
-  and a Washington State Ferry crossing Elliott Bay.
+- **Life.** About 8,700 trees in late-October color, cars, Metro buses, and a
+  Jumbo Mark II–style Washington State Ferry crossing Elliott Bay. The ferry
+  has the green stripe, open car decks, twin pilothouses and stacks, and a
+  foam wake.
 - **Day to night.** At night the windows light up, the streets glow sodium
   orange and the saucer shines.
 
@@ -50,7 +58,8 @@ In the viewer:
 
 - **Drag** to orbit, **right-drag** to pan and **scroll** to zoom. The tilt
   goes all the way from map view to street level.
-- **Fly to** the Needle or the Westin, or **ride along** with a train.
+- **Fly to** the Needle, the Westin, the Spheres or the Sculpture Park, or
+  **ride along** with a train.
 - **Photo · 4K** saves a still. **Copy link to view** puts the exact camera,
   time and weather in a shareable URL.
 
@@ -61,13 +70,15 @@ you can still work on the renderer.
 
 The fly-through is scripted in [`web/src/film.js`](web/src/film.js) as a list of
 camera keyframes (target, azimuth, tilt, zoom and time of day). The camera
-glides through them on Catmull-Rom splines. The default cut runs 48 seconds:
+glides through them on Catmull-Rom splines. The default cut runs 53 seconds:
 
 1. A morning establishing shot.
-2. A sweep around the Needle.
-3. Riding the Red train out of Seattle Center.
-4. An orbit of the Westin at golden hour.
-5. A pull back out as the city lights up.
+2. A pass over the Sculpture Park and the bay.
+3. A sweep around the Needle.
+4. Riding the Red train out of Seattle Center.
+5. A look down into the Spheres.
+6. An orbit of the Westin at golden hour.
+7. A pull back out as the city lights up.
 
 There are two ways to get the video:
 

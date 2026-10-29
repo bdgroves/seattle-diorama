@@ -35,7 +35,7 @@ SPHERES_FALLBACK = [
 
 # Place labels: (label, sub-label, OSM name regex, fallback lat, lon, height above ground m)
 PLACES = [
-    ("The Spheres", "Amazon · 7th & Lenora", r"^the spheres$|^spheres$", 47.61574, -122.33935, 45),
+    ("The Spheres", "Amazon · 7th & Lenora", r"\bspheres\b", 47.61574, -122.33935, 45),
     ("Olympic Sculpture Park", "Seattle Art Museum", r"olympic sculpture park", 47.61660, -122.35530, 30),
     ("Pike Place Market", "since 1907", r"^pike place market$", 47.60920, -122.34190, 40),
     ("Climate Pledge Arena", "Seattle Center", r"climate pledge arena", 47.62210, -122.35400, 40),

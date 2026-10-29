@@ -3,21 +3,22 @@
 // for frame-by-frame rendering by pipeline/film.py.
 import * as THREE from 'three';
 
-export function makeFilm({ VIEWS, mono, needleV, westinV, centerV }) {
+export function makeFilm({ VIEWS, mono, needleV, westinV, centerV, spheresV, ospV }) {
   const red = () => mono.trains[0].pos;
   // az = camera azimuth (radians, three.js spherical theta), polar = tilt from
   // straight down, zoom = ortho zoom, tod = time of day (0 morning .. 1 night)
   const keys = [
     { t: 0, target: centerV, az: 0.55, polar: 0.9, zoom: 1.25, tod: 0.12 },
-    { t: 7, target: centerV, az: 0.85, polar: 0.98, zoom: 1.55, tod: 0.2 },
-    { t: 12, target: needleV, az: -0.2, polar: 1.12, zoom: 4.2, tod: 0.28 },
-    { t: 16, target: red, az: -0.75, polar: 1.08, zoom: 5.2, tod: 0.33 },   // Red train departs
-    { t: 21, target: red, az: -0.5, polar: 1.0, zoom: 7.5, tod: 0.38 },
-    { t: 26, target: red, az: -0.2, polar: 1.02, zoom: 7.0, tod: 0.43 },
-    { t: 31, target: westinV, az: 0.1, polar: 1.1, zoom: 5.0, tod: 0.5 },
-    { t: 36, target: westinV, az: 0.6, polar: 1.12, zoom: 4.6, tod: 0.62 },
-    { t: 42, target: centerV, az: 0.9, polar: 0.95, zoom: 1.6, tod: 0.85 },
-    { t: 48, target: centerV, az: 1.05, polar: 0.92, zoom: 1.4, tod: 1.0 },
+    { t: 6, target: ospV, az: 0.2, polar: 1.0, zoom: 3.2, tod: 0.18 },          // Sculpture Park + the bay
+    { t: 11, target: needleV, az: -0.2, polar: 1.12, zoom: 4.2, tod: 0.26 },
+    { t: 16, target: red, az: -0.75, polar: 1.08, zoom: 5.2, tod: 0.32 },       // Red train departs
+    { t: 21, target: red, az: -0.5, polar: 1.0, zoom: 7.5, tod: 0.37 },
+    { t: 26, target: red, az: -0.2, polar: 1.02, zoom: 7.0, tod: 0.41 },
+    { t: 31, target: spheresV, az: 0.5, polar: 0.6, zoom: 8.5, tod: 0.46 },     // the Spheres
+    { t: 36, target: westinV, az: 0.1, polar: 1.1, zoom: 5.0, tod: 0.52 },
+    { t: 41, target: westinV, az: 0.6, polar: 1.12, zoom: 4.6, tod: 0.64 },
+    { t: 47, target: centerV, az: 0.9, polar: 0.95, zoom: 1.6, tod: 0.86 },
+    { t: 53, target: centerV, az: 1.05, polar: 0.92, zoom: 1.4, tod: 1.0 },
   ];
   const duration = keys[keys.length - 1].t;
 
