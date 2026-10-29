@@ -44,6 +44,8 @@ def main():
     ap.add_argument("--res", default="1920x1080")
     ap.add_argument("--fps", type=int, default=60)
     ap.add_argument("--seconds", type=float, default=None, help="render only the first N seconds")
+    ap.add_argument("--start", type=float, default=0.0, help="segment start (s), for rendering in parallel pieces")
+    ap.add_argument("--end", type=float, default=None, help="segment end (s)")
     ap.add_argument("--quality", choices=["fast", "best"], default="fast")
     ap.add_argument("--no-tilt", action="store_true", help="turn off the miniature blur")
     ap.add_argument("--headed", action="store_true", help="show the browser window (most reliable GPU use)")
@@ -89,14 +91,17 @@ def main():
         duration = page.evaluate("window.__diorama.film.duration")
         if args.seconds:
             duration = min(duration, args.seconds)
-        n = int(round(duration * args.fps))
+        end = min(duration, args.end) if args.end is not None else duration
         dt = 1.0 / args.fps
+        f0 = int(round(args.start * args.fps))
+        n = int(round(end * args.fps)) - f0
         # warm-up frames so shaders compile and shadows settle
         for _ in range(3):
             page.evaluate(f"window.__diorama.film.frame(0, {dt})")
+        page.evaluate(f"window.__diorama.film.seek({f0 * dt}, {dt})")
         t0 = time.time()
         for i in range(n):
-            data_url = page.evaluate(f"window.__diorama.film.frame({i * dt}, {dt})")
+            data_url = page.evaluate(f"window.__diorama.film.frame({(f0 + i) * dt}, {dt})")
             enc.stdin.write(base64.b64decode(data_url.split(",", 1)[1]))
             if i % args.fps == 0 or i == n - 1:
                 el = time.time() - t0

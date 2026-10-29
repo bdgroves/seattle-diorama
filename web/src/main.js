@@ -500,6 +500,9 @@ window.__diorama = {
     duration: film.duration,
     // render film frame at time t (s) and return it as a data URL
     frame(t, dt, type = 'image/png', quality = 0.95) { filmFrame(t, dt); return canvas.toDataURL(type, quality); },
+    // fast-forward the step-by-step simulations (traffic) to film time t without
+    // rendering, so a film rendered in segments joins up seamlessly
+    seek(t, dt) { for (let ft = 0; ft < t - dt / 2; ft += dt) traffic.update(dt); },
   },
 };
 document.body.classList.add('booted');
