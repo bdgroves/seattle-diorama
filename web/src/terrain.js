@@ -8,16 +8,16 @@ import { CAR_COLORS, carGeometry, lightsGeometry, mulberry32 } from './life.js';
 import { animateWater } from './bay.js';
 
 // landcover classes (match pipeline/terrain.py)
-const FOREST = 0, ROCK = 1, MEADOW = 2, WATER = 3, DEVELOPED = 4, SAGE = 5, SAND = 6, SNOW = 7, ALPINE = 8;
+const FOREST = 0, ROCK = 1, MEADOW = 2, WATER = 3, DEVELOPED = 4, SAGE = 5, SAND = 6, SNOW = 7, ALPINE = 8, LAVA = 9;
 
 const PALETTES = {
   autumn: {
-    [FOREST]: '#46613f', [ROCK]: '#c6c0b3', [MEADOW]: '#cbb47c', [WATER]: '#4d8db0', [DEVELOPED]: '#c9c1b3',
-    [SAGE]: '#aaa98c', [SAND]: '#e6dfcf', [SNOW]: '#f4f6f8', [ALPINE]: '#b2a790',
+    [FOREST]: '#3c5b39', [ROCK]: '#bfc0ba', [MEADOW]: '#cbb47c', [WATER]: '#4d8db0', [DEVELOPED]: '#c9c1b3',
+    [SAGE]: '#939c80', [SAND]: '#ece8dc', [SNOW]: '#f4f6f8', [ALPINE]: '#a9a594', [LAVA]: '#4f4a46',
   },
   spring: {
-    [FOREST]: '#3f6b3d', [ROCK]: '#c6c0b3', [MEADOW]: '#88bb5b', [WATER]: '#4d8db0', [DEVELOPED]: '#c9c1b3',
-    [SAGE]: '#a0b287', [SAND]: '#e6dfcf', [SNOW]: '#f4f6f8', [ALPINE]: '#a3ae88',
+    [FOREST]: '#3a6539', [ROCK]: '#bfc0ba', [MEADOW]: '#88bb5b', [WATER]: '#4d8db0', [DEVELOPED]: '#c9c1b3',
+    [SAGE]: '#94a982', [SAND]: '#ece8dc', [SNOW]: '#f4f6f8', [ALPINE]: '#9ead88', [LAVA]: '#4f4a46',
   },
 };
 const DECID = {
@@ -174,11 +174,11 @@ function slabWalls(grid, z, depth) {
         float d = vTop - vWP2.y;
         float wob = sin((vWP2.x + vWP2.z) * 0.004) * ${(band * 0.35).toFixed(1)};
         float layer = floor((vWP2.y + wob) / ${band.toFixed(1)});
-        vec3 a = vec3(0.56, 0.53, 0.49), b = vec3(0.47, 0.44, 0.40), c = vec3(0.62, 0.58, 0.52), e = vec3(0.40, 0.37, 0.34);
+        vec3 a = vec3(0.25, 0.235, 0.22), b = vec3(0.2, 0.185, 0.17), c = vec3(0.3, 0.28, 0.26), e = vec3(0.16, 0.15, 0.14);
         float r = hh(layer * 7.1);
         vec3 strata = r < 0.25 ? a : r < 0.5 ? b : r < 0.75 ? c : e;
         strata *= mix(0.7, 1.0, smoothstep(${(-depth).toFixed(1)}, 0.0, vWP2.y));
-        vec3 soil = vec3(0.33, 0.25, 0.18);
+        vec3 soil = vec3(0.22, 0.16, 0.11);
         diffuseColor.rgb = mix(strata, soil, smoothstep(${(depth * 0.03 + 6).toFixed(1)}, 0.0, d));`);
   };
   const mesh = new THREE.Mesh(g, mat);
@@ -491,11 +491,11 @@ function gullFlock(center) {
   const pos = new Float32Array(n * 3);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const mat = new THREE.PointsMaterial({ color: '#ffffff', size: 3.2, sizeAttenuation: false, transparent: true, opacity: 0.95 });
+  const mat = new THREE.PointsMaterial({ color: '#ffffff', size: 2.4, sizeAttenuation: false, transparent: true, opacity: 0.95 });
   const pts = new THREE.Points(g, mat);
   pts.frustumCulled = false;
   const rnd = mulberry32(60);
-  const birds = Array.from({ length: n }, () => ({ r: 120 + rnd() * 650, a: rnd() * 6.28, w: (0.12 + rnd() * 0.2) * (rnd() < 0.5 ? 1 : -1), h: 30 + rnd() * 140, ph: rnd() * 6.28 }));
+  const birds = Array.from({ length: n }, () => ({ r: 200 + rnd() * 1100, a: rnd() * 6.28, w: (0.12 + rnd() * 0.2) * (rnd() < 0.5 ? 1 : -1), h: 30 + rnd() * 140, ph: rnd() * 6.28 }));
   const lead = { pos: new THREE.Vector3(center[0], center[2], -center[1]) };
   return {
     object: pts, lead,
@@ -568,7 +568,7 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   scene.add(falls.group);
   const lamps = headlamps(data.lamps, uniforms);
   if (lamps) scene.add(lamps);
-  const tufa = tufaField(data.tufa, 2.6);
+  const tufa = tufaField(data.tufa, 3.4);
   if (tufa) scene.add(tufa);
   const gulls = gullFlock(data.gulls);
   if (gulls) scene.add(gulls.object);

@@ -5,11 +5,15 @@ name: Render the film
 # The finished videos land on the `film` branch and as a workflow artifact.
 # Start it from the Actions tab ("Run workflow"), or by pushing to the
 # `render-film` branch.
+# Pushing to `render-film-<place>` (e.g. render-film-yosemite) also starts it.
 on:
   push:
-    branches: [render-film]
+    branches: ['render-film', 'render-film-*']
   workflow_dispatch:
     inputs:
+      place:
+        description: "Place: seattle, yosemite, tuolumne or mono"
+        default: "seattle"
       res:
         description: "Resolution"
         default: "1920x1080"
@@ -28,13 +32,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
+      place: ${{ steps.plan.outputs.place }}
     steps:
       - uses: actions/checkout@v7
       - name: Use the latest built scene
         run: |
           git fetch --depth 1 origin scene-data
           mkdir -p web/public/data
-          git show origin/scene-data:scene.json > web/public/data/scene.json
+          for f in $(git ls-tree --name-only origin/scene-data); do git show origin/scene-data:$f > web/public/data/$f; done
       - uses: prefix-dev/setup-pixi@v0.11.2
         with: { locked: false, cache: false }
       - run: pixi run bundle
@@ -45,8 +50,16 @@ jobs:
         run: |
           python3 - <<'EOF' >> "$GITHUB_OUTPUT"
           import json, re
-          src = open("web/src/film.js").read()
-          duration = max(float(t) for t in re.findall(r"\{ t: ([0-9.]+),", src))
+          place = "${{ inputs.place }}" or "${{ github.ref_name }}".removeprefix("render-film").strip("-") or "seattle"
+          print("place=" + place)
+          if place == "seattle":
+              src = open("web/src/places/seattle.js").read()
+          else:
+              src = open("web/src/places/sierra.js").read()
+              src = src[src.index(f"id: '{place}'"):]
+              src = src[:src.index("export const")] if "export const" in src else src
+          film = src[src.index("film"):]
+          duration = max(float(t) for t in re.findall(r"\{ t: ([0-9.]+),", film))
           fps, n = int("${{ inputs.fps || 30 }}"), int("${{ inputs.segments || 20 }}")
           frames = round(duration * fps)
           cuts = [round(i * frames / n) for i in range(n + 1)]
@@ -79,12 +92,13 @@ jobs:
           python pipeline/film.py --software-gl --quality best
           --res ${{ inputs.res || '1920x1080' }} --fps ${{ inputs.fps || 30 }}
           --start ${{ matrix.start }} --end ${{ matrix.end }}
+          --place ${{ needs.prepare.outputs.place }}
           --out film/seg_${{ matrix.i }}.mp4
       - uses: actions/upload-artifact@v7
         with: { name: "seg-${{ matrix.i }}", path: "film/seg_${{ matrix.i }}.mp4" }
 
   assemble:
-    needs: render
+    needs: [prepare, render]
     runs-on: ubuntu-24.04
     steps:
       - run: sudo apt-get install -y -qq ffmpeg > /dev/null
@@ -94,24 +108,28 @@ jobs:
         run: |
           cd film
           ls seg_*.mp4 | sort | sed "s/^/file '/; s/$/'/" > list.txt
-          ffmpeg -y -loglevel error -f concat -safe 0 -i list.txt -c copy seattle-diorama-master.mp4
-          ffmpeg -y -loglevel error -i seattle-diorama-master.mp4 -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -movflags +faststart seattle-diorama-1080.mp4
-          ffmpeg -y -loglevel error -i seattle-diorama-master.mp4 -vf scale=1280:-2 -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p -movflags +faststart seattle-diorama-720.mp4
-          ffmpeg -y -loglevel error -ss 3 -i seattle-diorama-master.mp4 -frames:v 1 -q:v 2 poster.jpg
+          P=${{ needs.prepare.outputs.place }}
+          ffmpeg -y -loglevel error -f concat -safe 0 -i list.txt -c copy master.mp4
+          ffmpeg -y -loglevel error -i master.mp4 -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -movflags +faststart $P-diorama-1080.mp4
+          ffmpeg -y -loglevel error -i master.mp4 -vf scale=1280:-2 -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p -movflags +faststart $P-diorama-720.mp4
+          ffmpeg -y -loglevel error -ss 3 -i master.mp4 -frames:v 1 -q:v 2 $P-poster.jpg
           ls -la
       - name: Publish to the film branch
         run: |
-          mkdir -p /tmp/out && cp film/seattle-diorama-1080.mp4 film/seattle-diorama-720.mp4 film/poster.jpg /tmp/out/
-          cd /tmp/out
+          P=${{ needs.prepare.outputs.place }}
+          mkdir -p /tmp/out && cd /tmp/out
+          # keep the other places' films that are already on the branch
           git init -q -b film
+          git fetch -q --depth 1 "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" film && git checkout -q FETCH_HEAD -- . 2>/dev/null || true
+          cp $GITHUB_WORKSPACE/film/$P-diorama-1080.mp4 $GITHUB_WORKSPACE/film/$P-diorama-720.mp4 $GITHUB_WORKSPACE/film/$P-poster.jpg .
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A && git commit -q -m "Film render ${{ inputs.res || '1920x1080' }} @ ${{ inputs.fps || 30 }} fps ($(date -u +%Y-%m-%d))"
+          git add -A && git commit -q -m "$P film ${{ inputs.res || '1920x1080' }} @ ${{ inputs.fps || 30 }} fps ($(date -u +%Y-%m-%d))"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" film
       - uses: actions/upload-artifact@v7
         with:
-          name: seattle-diorama-film
+          name: diorama-film
           path: |
-            film/seattle-diorama-1080.mp4
-            film/seattle-diorama-720.mp4
-            film/poster.jpg
+            film/*-diorama-1080.mp4
+            film/*-diorama-720.mp4
+            film/*-poster.jpg

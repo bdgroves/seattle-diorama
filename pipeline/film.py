@@ -50,22 +50,24 @@ def main():
     ap.add_argument("--no-tilt", action="store_true", help="turn off the miniature blur")
     ap.add_argument("--headed", action="store_true", help="show the browser window (most reliable GPU use)")
     ap.add_argument("--software-gl", action="store_true", help="force SwiftShader (no GPU)")
-    ap.add_argument("--out", default=str(OUT_DIR / "seattle-diorama.mp4"))
+    ap.add_argument("--place", default="seattle", help="seattle, yosemite, tuolumne or mono")
+    ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
     if not (DIST / "index.html").exists():
         sys.exit("web/dist is missing - run `pixi run bundle` first.")
-    if not (DIST / "data" / "scene.json").exists():
-        sys.exit("No scene.json in the bundle - run `pixi run city` (or `pixi run demo`) first.")
+    need = "scene.json" if args.place == "seattle" else f"{args.place}.json"
+    if not (DIST / "data" / need).exists():
+        sys.exit(f"No {need} in the bundle - run `pixi run city` / `pixi run sierra` first.")
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         sys.exit("ffmpeg not found (it is in pixi.toml - try `pixi install`).")
 
     w, h = (int(v) for v in args.res.lower().split("x"))
-    out = args.out
+    out = args.out or str(OUT_DIR / ("seattle-diorama.mp4" if args.place == "seattle" else f"{args.place}-diorama.mp4"))
     OUT_DIR.mkdir(exist_ok=True)
     httpd = serve(DIST)
-    url = f"http://127.0.0.1:{httpd.server_address[1]}/index.html?film=capture&t=0.1" + ("&tilt=0" if args.no_tilt else "")
+    url = f"http://127.0.0.1:{httpd.server_address[1]}/index.html?film=capture&t=0.1&place={args.place}" + ("&tilt=0" if args.no_tilt else "")
 
     gl_args = (["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] if args.software_gl
                else ["--enable-gpu", "--ignore-gpu-blocklist"])

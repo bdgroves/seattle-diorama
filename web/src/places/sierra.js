@@ -24,7 +24,7 @@ export const YOSEMITE = {
     stars: 2, milky: 1,
   },
   views: [
-    { id: 'overview', label: 'Overview', lat: 37.737, lon: -119.600, az: 0.25, polar: 0.95, zoom: 1.0 },
+    { id: 'overview', label: 'Overview', lat: 37.737, lon: -119.600, az: -0.9, polar: 0.85, zoom: 1.15 },
     { id: 'tunnel', label: 'Tunnel View', lat: 37.738, lon: -119.585, az: -1.45, polar: 1.2, zoom: 1.7 },
     { id: 'elcap', label: 'El Capitan', lat: 37.7315, lon: -119.6370, az: 0.05, polar: 1.12, zoom: 4.5 },
     { id: 'falls', label: 'Yosemite Falls', lat: 37.7530, lon: -119.5966, az: 0.15, polar: 1.12, zoom: 4.2 },
@@ -32,7 +32,7 @@ export const YOSEMITE = {
     { id: 'glacier', label: 'From Glacier Point', lat: 37.735, lon: -119.545, az: -0.75, polar: 1.1, zoom: 2.6 },
   ],
   film: ({ V }) => [
-    { t: 0, target: V.overview, az: 0.25, polar: 0.9, zoom: 0.95, tod: 0.1 },
+    { t: 0, target: V.overview, az: -0.7, polar: 0.85, zoom: 1.05, tod: 0.1 },
     { t: 6, target: V.tunnel, az: -1.45, polar: 1.2, zoom: 1.7, tod: 0.18 },
     { t: 13, target: V.elcap, az: -0.15, polar: 1.12, zoom: 4.2, tod: 0.26 },
     { t: 19, target: V.falls, az: 0.2, polar: 1.12, zoom: 4.0, tod: 0.33 },
@@ -40,7 +40,7 @@ export const YOSEMITE = {
     { t: 31, target: V.glacier, az: -0.75, polar: 1.1, zoom: 2.6, tod: 0.52 },
     { t: 38, target: V.halfdome, az: -2.5, polar: 1.12, zoom: 3.2, tod: 0.66 },
     { t: 44, target: V.elcap, az: 0.1, polar: 1.15, zoom: 4.2, tod: 0.95 },
-    { t: 50, target: V.overview, az: 0.35, polar: 0.95, zoom: 1.0, tod: 1.0 },
+    { t: 50, target: V.overview, az: -1.0, polar: 0.85, zoom: 1.1, tod: 1.0 },
   ],
 };
 
