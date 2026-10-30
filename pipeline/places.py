@@ -8,7 +8,7 @@ veg       how to fill land OSM doesn't classify: "sierra" (forest below
           `sage_top`, Jeffrey pine above, granite where steep)
 labels    (label, OSM-name regex, fallback lat, lon, height above ground m, kind)
           kind: "peak" shows the elevation, "fall" the drop, "" just the name
-falls     (OSM-name regex, fallback lat, lon) of waterfalls to animate
+falls     (OSM-name regex, lat, lon, drop m) of waterfalls to animate
 """
 
 YOSEMITE = {
@@ -34,14 +34,15 @@ YOSEMITE = {
         ("Tunnel View", r"^tunnel view$", 37.7156, -119.6773, 40, ""),
         ("The Ahwahnee", r"ahwahnee", 37.7461, -119.5743, 40, ""),
     ],
+    # (OSM-name regex, lat, lon of the lip, drop in m from NPS / Wikipedia)
     "falls": [
-        (r"^upper yosemite fall", 37.7568, -119.5965),
-        (r"^lower yosemite fall", 37.7488, -119.5966),
-        (r"^bridalveil fall", 37.7166, -119.6463),
-        (r"^vernal fall", 37.7276, -119.5441),
-        (r"^nevada fall", 37.7246, -119.5334),
-        (r"^ribbon fall", 37.7389, -119.6505),
-        (r"^horsetail fall", 37.7300, -119.6290),
+        (r"^upper yosemite fall", 37.7568, -119.5965, 436),
+        (r"^lower yosemite fall", 37.7505, -119.5968, 98),
+        (r"^bridalveil fall", 37.7163, -119.6467, 189),
+        (r"^vernal fall", 37.7276, -119.5441, 97),
+        (r"^nevada fall", 37.7247, -119.5330, 181),
+        (r"^ribbon fall", 37.7395, -119.6510, 491),
+        (r"^horsetail fall", 37.7300, -119.6290, 305),
     ],
     # climbers on the big walls light up at night
     "walls": [

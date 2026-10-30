@@ -571,15 +571,16 @@ def build(place):
         labels_out.append({"t": label, "s": sub, "k": kind, "x": round(x, 1), "y": round(y, 1),
                            "z": round(zat(x, y) + lift * vex, 1), "osm": bool(hit)})
 
-    # ---- waterfalls: follow the steepest way down from the lip
-    def descend(x, y, max_len=900):
+    # ---- waterfalls: find the cliff that matches each fall's real drop, then
+    # follow the steepest way down it
+    def descend(x, y, drop):
         pts = [(x, y, hat(x, y))]
-        flat = 0.0
         step = max(3.0, g.dx * 0.25)
-        for _ in range(int(max_len / step)):
+        horiz = 0.0
+        while horiz < drop * 2.5 + 60:
             cx, cy, ch = pts[-1]
             best = None
-            for a in range(0, 360, 15):
+            for a in range(0, 360, 20):
                 nx_, ny_ = cx + step * math.cos(math.radians(a)), cy + step * math.sin(math.radians(a))
                 if not clip.contains(Point(nx_, ny_)):
                     continue
@@ -588,41 +589,41 @@ def build(place):
                     best = (nx_, ny_, nh)
             if best is None or best[2] >= ch - 0.05:
                 break
-            grade = (ch - best[2]) / step
-            flat = flat + step if grade < 0.4 else 0.0
             pts.append(best)
-            if flat > 50 and pts[0][2] - best[2] > 25:
+            horiz += step
+            if pts[0][2] - best[2] >= drop:
                 break
-        while len(pts) > 2 and (pts[-2][2] - pts[-1][2]) / step < 0.4:
-            pts.pop()
-        return pts
+        return pts, horiz
 
     falls_out = []
-    for rx, lat, lon in place.get("falls", []):
+    for rx, lat, lon, drop in place.get("falls", []):
+        fx, fy = g.proj(lat, lon)
         hit = find(rx)
-        x, y = (hit[1].x, hit[1].y) if hit and isinstance(hit[1], Point) else g.proj(lat, lon)
-        if not clip.contains(Point(x, y)):
-            continue
-        best = descend(x, y)
-        # if the node sits at the base or mid-fall, look for the lip nearby
-        if best[0][2] - best[-1][2] < 40:
-            for a in range(0, 360, 30):
-                for d in (40, 80, 120, 170):
-                    sx, sy = x + d * math.cos(math.radians(a)), y + d * math.sin(math.radians(a))
-                    if clip.contains(Point(sx, sy)):
-                        cand = descend(sx, sy)
-                        if cand[0][2] - cand[-1][2] > best[0][2] - best[-1][2]:
-                            best = cand
-        drop = best[0][2] - best[-1][2]
-        if drop < 20:
-            print(f"  waterfall {rx}: only {drop:.0f} m of drop found, skipped")
+        if hit and isinstance(hit[1], Point) and hit[1].distance(Point(fx, fy)) < 500:
+            fx, fy = (fx + hit[1].x) / 2, (fy + hit[1].y) / 2
+        best, best_score = None, -1
+        for ox in range(-210, 211, 15):
+            for oy in range(-210, 211, 15):
+                sx, sy = fx + ox, fy + oy
+                if math.hypot(ox, oy) > 210 or not clip.contains(Point(sx, sy)):
+                    continue
+                pts, horiz = descend(sx, sy, drop)
+                got = pts[0][2] - pts[-1][2]
+                if got < 0.7 * drop:
+                    continue
+                score = got / max(horiz, 1.0) - math.hypot(ox, oy) / 2000
+                if score > best_score:
+                    best, best_score = pts, score
+        if best is None:
+            print(f"  waterfall {rx}: no cliff of {drop} m found nearby, skipped")
             continue
         flat_pts = []
         for px_, py_, _ in best:
             flat_pts += [round(px_, 1), round(py_, 1), round(zat(px_, py_) + 1.5 * vex, 1)]
-        name = re.sub(r"[\^$]", "", rx).replace("\\b", "").title()
+        name = re.sub(r"[\^$]", "", rx).title()
+        got = best[0][2] - best[-1][2]
         falls_out.append({"n": name, "drop": round(drop), "p": flat_pts})
-        print(f"  waterfall {name}: {drop:.0f} m drop over {len(best)} steps")
+        print(f"  waterfall {name}: {got:.0f} m of the real {drop} m found, slope {best_score:.1f}")
     # report drops on fall labels
     for lab in labels_out:
         if lab["k"] == "fall":
@@ -699,7 +700,7 @@ def build(place):
         "buildings": bld_out, "trees": trees, "labels": labels_out, "falls": falls_out,
         "lamps": lamps, "tufa": tufa, "gulls": gulls,
     }
-    (OUT / f"{pid}.json").write_text(json.dumps(scene, separators=(",", ":")))
+    (OUT / f"{pid}.json").write_text(json.dumps(scene, separators=(",", ":"), default=float))
     kb = ((OUT / f"{pid}.json").stat().st_size + (OUT / f"{pid}.bin").stat().st_size) / 1e6
     print(f"  wrote {pid}.json + {pid}.bin ({kb:.1f} MB)")
 

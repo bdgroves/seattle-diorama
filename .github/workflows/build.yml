@@ -45,7 +45,7 @@ jobs:
       - name: Keep raw OSM + build log on the debug-data branch
         if: always()
         run: |
-          mkdir -p /tmp/dbg && cp data/raw/osm.json data/raw/*_osm.json build.log /tmp/dbg/ 2>/dev/null || true
+          mkdir -p /tmp/dbg && cp data/raw/osm.json data/raw/*_osm.json data/raw/*_dem.npy data/raw/*_dem.src build.log /tmp/dbg/ 2>/dev/null || true
           cd /tmp/dbg && [ -n "$(ls)" ] || exit 0
           git init -q -b debug-data
           git config user.name "github-actions[bot]"
