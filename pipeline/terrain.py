@@ -41,7 +41,7 @@ OVERPASS = ["https://overpass-api.de/api/interpreter",
             "https://overpass.private.coffee/api/interpreter"]
 
 # landcover classes (match web/src/terrain.js)
-FOREST, ROCK, MEADOW, WATER, DEVELOPED, SAGE, SAND, SNOW, ALPINE = range(9)
+FOREST, ROCK, MEADOW, WATER, DEVELOPED, SAGE, SAND, SNOW, ALPINE, LAVA = range(10)
 
 
 # ----------------------------------------------------------------- grid
@@ -375,7 +375,13 @@ def build(place):
         if m.sum() < 3:
             continue
         level = float(np.percentile(dem[m], 15))
-        dem[m] = np.minimum(dem[m], level) - 1.5
+        # lower only the interior, so the shore meets the water without a step
+        inner = m.copy()
+        inner[1:, :] &= m[:-1, :]; inner[:-1, :] &= m[1:, :]
+        inner[:, 1:] &= m[:, :-1]; inner[:, :-1] &= m[:, 1:]
+        dem[inner] = np.minimum(dem[inner], level) - 1.5
+        edge = m & ~inner
+        dem[edge] = np.minimum(dem[edge], level + 0.2)
         water_mask |= m
         ps = orient(p.simplify(max(2.0, g.dx * 0.25)), 1.0)
         rings = [ring_flat(ps.exterior.coords)] + [ring_flat(h.coords) for h in ps.interiors if Polygon(h).area > g.dx * g.dy]
@@ -396,6 +402,11 @@ def build(place):
         if geoms:
             cls[mask_of(geoms)] = c
     # meadows sit on flat ground: keep OSM forest off the valley floor's open meadows
+    lava_rx = place.get("lava", [])
+    if lava_rx:
+        lava = [geom for nm, geom, t in named if any(re.search(rx, nm) for rx in lava_rx) and getattr(geom, "area", 0) > 0]
+        if lava:
+            cls[mask_of(lava)] = LAVA
     cls[water_mask] = WATER
     # the dry lake margins around Mono read as pale flats
     if place["veg"] == "eastside" and lakes_out:
@@ -613,7 +624,7 @@ def build(place):
                     continue
                 pts, horiz = descend(sx, sy, drop)
                 got = pts[0][2] - pts[-1][2]
-                if got < 0.7 * drop:
+                if got < 0.75 * drop or got > 1.3 * drop:
                     continue
                 score = got / max(horiz, 1.0) - math.hypot(ox, oy) / 2000
                 if score > best_score:

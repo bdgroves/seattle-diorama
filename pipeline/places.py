@@ -77,11 +77,13 @@ TUOLUMNE = {
 MONO = {
     "id": "mono",
     "name": "Mono Lake",
-    "bbox": (37.905, -119.205, 38.070, -118.915),
-    "cell": 42,
+    "bbox": (37.900, -119.205, 38.080, -118.860),
+    "cell": 45,
     "vexag": 1.7,
     "veg": "eastside",
     "sage_top": 2350,
+    # dark volcanic ground (Negit is black cinder; Paoha is pale lake sediment)
+    "lava": [r"^negit island$"],
     "treeline": 3300,
     "labels": [
         ("Mono Lake", r"^mono lake$", 38.0050, -119.0500, 60, ""),
@@ -97,7 +99,7 @@ MONO = {
     "walls": [],
     # tufa towers grow along these shores (lat, lon, radius m, count)
     "tufa": [
-        (37.9405, -119.0272, 380, 70),   # South Tufa
+        (37.9405, -119.0272, 420, 110),  # South Tufa
         (37.9430, -119.0205, 300, 35),   # Navy Beach
         (38.0215, -119.1465, 260, 30),   # County Park
         (38.0050, -119.1520, 250, 20),   # Old Marina
