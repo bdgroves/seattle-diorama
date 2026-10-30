@@ -56,6 +56,15 @@ jobs:
         continue-on-error: true
         run: pixi run dakar-build 2>&1 | tee -a dakar.log
 
+      - name: Keep the last good data for any place that failed this time
+        run: |
+          git fetch --depth 1 origin scene-data || exit 0
+          mkdir -p /tmp/last && git archive origin/scene-data | tar -x -C /tmp/last
+          for f in /tmp/last/*.json /tmp/last/*.bin; do
+            b=$(basename "$f")
+            if [ ! -e "web/public/data/$b" ]; then echo "keeping last good $b"; cp "$f" web/public/data/; fi
+          done
+
       - name: Keep raw OSM + build log on the debug-data branch
         if: always()
         run: |
