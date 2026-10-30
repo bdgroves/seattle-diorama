@@ -196,6 +196,8 @@ let follow = null, tween = null;
 function flyTo(id) {
   follow = null;
   const goal = VIEWS[id];
+  const msg = place.onView?.(id);
+  if (msg) toast(msg);
   const sph = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
   tween = { t: 0, from: { target: controls.target.clone(), az: sph.theta, polar: sph.phi, zoom: camera.zoom }, goal };
 }

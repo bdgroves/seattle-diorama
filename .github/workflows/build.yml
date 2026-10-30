@@ -40,7 +40,8 @@ jobs:
         run: pixi run sierra-fetch
 
       - name: Fetch the Dakar Rally elevation
-        run: pixi run dakar-fetch
+        continue-on-error: true
+        run: pixi run dakar-fetch 2>&1 | tee dakar.log
 
       - name: Real 3D models from Wikidata / Commons
         run: pixi run models 2>&1 | tee models.log
@@ -52,12 +53,13 @@ jobs:
         run: pixi run sierra-build 2>&1 | tee -a build.log
 
       - name: Build the Dakar Rally 2027
-        run: pixi run dakar-build 2>&1 | tee -a build.log
+        continue-on-error: true
+        run: pixi run dakar-build 2>&1 | tee -a dakar.log
 
       - name: Keep raw OSM + build log on the debug-data branch
         if: always()
         run: |
-          mkdir -p /tmp/dbg && cp data/raw/osm.json data/raw/*_osm.json data/raw/*_dem.npy data/raw/*_dem.src data/raw/models.json data/raw/models-report.txt build.log models.log /tmp/dbg/ 2>/dev/null || true
+          mkdir -p /tmp/dbg && cp data/raw/osm.json data/raw/*_osm.json data/raw/*_dem.npy data/raw/*_dem.src data/raw/models.json data/raw/models-report.txt build.log models.log dakar.log /tmp/dbg/ 2>/dev/null || true
           cd /tmp/dbg && [ -n "$(ls)" ] || exit 0
           git init -q -b debug-data
           git config user.name "github-actions[bot]"

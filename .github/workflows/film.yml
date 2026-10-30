@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       place:
-        description: "Place: seattle, yosemite, tuolumne or mono"
+        description: "Place: seattle, yosemite, tuolumne, mono, amalfi or dakar"
         default: "seattle"
       res:
         description: "Resolution"
@@ -52,8 +52,11 @@ jobs:
           import json, re
           place = "${{ inputs.place }}" or "${{ github.ref_name }}".removeprefix("render-film").strip("-") or "seattle"
           print("place=" + place)
+          import os
           if place == "seattle":
               src = open("web/src/places/seattle.js").read()
+          elif os.path.exists(f"web/src/places/{place}.js"):
+              src = open(f"web/src/places/{place}.js").read()
           else:
               src = open("web/src/places/sierra.js").read()
               src = src[src.index(f"id: '{place}'"):]

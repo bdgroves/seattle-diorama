@@ -171,8 +171,27 @@ def fetch(force=False):
     if path.exists() and not force:
         print(f"[dakar] cached elevation {path.name}")
         return
-    print(f"[dakar] Terrarium z{TILE_ZOOM} tiles onto {g.nx} x {g.ny} @ {PLACE['cell']} m ...")
-    dem = fetch_dem_terrarium(g, TILE_ZOOM)
+    print(f"[dakar] Terrarium z{TILE_ZOOM} tiles onto {g.nx} x {g.ny} @ {PLACE['cell']} m ...", flush=True)
+    # the shared fetcher has no retries; ~150 tiles here, so retry flaky ones
+    import terrain
+    real_get = terrain.requests.get
+
+    def get(url, **kw):
+        for attempt in range(5):
+            try:
+                r = real_get(url, **kw)
+                r.raise_for_status()
+                return r
+            except Exception as exc:  # noqa: BLE001
+                print(f"  retry {attempt + 1} {url}: {exc}", flush=True)
+                import time
+                time.sleep(2 + 3 * attempt)
+        raise RuntimeError(f"tile failed: {url}")
+    terrain.requests.get = get
+    try:
+        dem = fetch_dem_terrarium(g, TILE_ZOOM)
+    finally:
+        terrain.requests.get = real_get
     np.save(path, dem)
     (RAW / "dakar_dem.src").write_text("Terrain Tiles on AWS (SRTM, ETOPO1 bathymetry)")
     print(f"  elevation {dem.min():.0f} to {dem.max():.0f} m")

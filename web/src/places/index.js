@@ -35,4 +35,11 @@ export const PLACES = [
     lat: 40.62, lon: 14.45, where: 'on the Amalfi Coast',
     load: () => import('./sierra.js').then((m) => m.sierraLoader(m.AMALFI)),
   },
+  {
+    id: 'dakar', name: 'Dakar Rally 2027', tz: 'Africa/Casablanca',
+    eyebrow: 'Portugal & Morocco · 9–23 January 2027', title: 'Dakar <em>2027</em>',
+    blurb: 'The 49th Dakar: the Algarve, a ferry to Africa, and twelve stages across Morocco to Marrakech.',
+    lat: 30.9, lon: -7.0, where: 'in Morocco',
+    load: () => import('./dakar.js').then((m) => m.dakarLoader()),
+  },
 ];

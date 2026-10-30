@@ -135,7 +135,7 @@ class Route {
   }
 }
 
-export function boats({ routes, anchored, sea, uniforms, scale = 2, leadNear = null }) {
+export function boats({ routes, anchored, sea, uniforms, scale = 2, leadNear = null, speed = 1 }) {
   const group = new THREE.Group();
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.45, side: THREE.DoubleSide });
   const rnd = mulberry32(1544);
@@ -151,7 +151,7 @@ export function boats({ routes, anchored, sea, uniforms, scale = 2, leadNear = n
   }
   const ferries = [];
   lines.forEach((r, i) => {
-    for (const k of [0, 1]) ferries.push({ r, phase: (k * 0.5 + i * 0.17) % 1, v: 15 + rnd() * 4 });
+    for (const k of [0, 1]) ferries.push({ r, phase: (k * 0.5 + i * 0.17) % 1, v: (15 + rnd() * 4) * speed });
   });
   const fMesh = new THREE.InstancedMesh(ferryGeo(), mat, Math.max(1, ferries.length));
   fMesh.count = ferries.length;

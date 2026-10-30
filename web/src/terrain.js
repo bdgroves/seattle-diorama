@@ -92,6 +92,10 @@ function terrainMesh(grid, z, cls, uniforms, cfg = {}) {
     }
   }
   g.setAttribute('aTerr', new THREE.BufferAttribute(terr, 1));
+  // dune seas: ridged sand, drawn in the shader
+  const dune = new Float32Array(nx * ny);
+  if (cfg.dunes) for (let k = 0; k < nx * ny; k++) dune[k] = cls[k] === cfg.dunes.cls ? 1 : 0;
+  g.setAttribute('aDune', new THREE.BufferAttribute(dune, 1));
   g.computeBoundingSphere();
 
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96, metalness: 0 });
@@ -100,19 +104,31 @@ function terrainMesh(grid, z, cls, uniforms, cfg = {}) {
     sh.uniforms.uH0 = { value: grid.h0 };
     sh.uniforms.uContour = { value: grid.contour || 100 };
     sh.uniforms.uNight = uniforms.uNight;
+    sh.uniforms.uDuneK = { value: cfg.dunes?.spacing ? 6.2832 / cfg.dunes.spacing : 0 };
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aTerr; varying float vTerr; varying vec3 vWP;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTerr = aTerr; vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      .replace('#include <common>', '#include <common>\nattribute float aTerr, aDune; varying float vTerr, vDune; varying vec3 vWP;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTerr = aTerr; vDune = aDune; vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform float uVex, uH0, uContour, uNight; varying float vTerr; varying vec3 vWP;
+        uniform float uVex, uH0, uContour, uNight, uDuneK; varying float vTerr, vDune; varying vec3 vWP;
         float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+          return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
         float cline(float v){ float w = fwidth(v); return (1.0 - min(abs(fract(v - 0.5) - 0.5) / max(w, 1e-5), 1.0)) * (1.0 - smoothstep(0.12, 0.35, w)); }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
         float hReal = vWP.y / uVex + uH0;
         float c1 = cline(hReal / uContour), c5 = cline(hReal / (uContour * 5.0));
         diffuseColor.rgb *= 1.0 - (0.10 * c1 + 0.16 * c5) * (1.0 - 0.6 * uNight);
         diffuseColor.rgb *= 0.95 + 0.1 * h21(floor(vWP.xz / 7.0));
+        if (vDune > 0.01 && uDuneK > 0.0) {
+          // crescent ridges across the wind: a sharp slip face, a long gentle back
+          vec2 q = vWP.xz * uDuneK;
+          float w = vn(vWP.xz * uDuneK * 0.23) * 5.0 + vn(vWP.xz * uDuneK * 0.07) * 9.0;
+          float ph = fract((q.x * 0.82 + q.y * 0.57) / 6.2832 + w * 0.16);
+          float ridge = smoothstep(0.0, 0.82, ph) * (1.0 - smoothstep(0.82, 1.0, ph));
+          float face = smoothstep(0.82, 0.9, ph) * (1.0 - smoothstep(0.96, 1.0, ph));
+          diffuseColor.rgb *= 1.0 + vDune * (0.12 * ridge - 0.30 * face - 0.04);
+        }
         if (vTerr > 0.01) { float tl = cline(hReal / 7.0); diffuseColor.rgb *= 1.0 - vTerr * (0.28 * tl - 0.04 * cline(hReal / 7.0 + 0.5)); }`);
   };
   const mesh = new THREE.Mesh(g, mat);
@@ -151,7 +167,7 @@ function terrainMesh(grid, z, cls, uniforms, cfg = {}) {
       }
       // the seabed: pale sand in the shallows, turquoise, then deep blue
       if (cfg.sea && hReal < 0.5) {
-        const d = -hReal;
+        const d = -hReal / (cfg.seabedScale || 1);
         if (d < 4) tmp.copy(SEABED[0]).lerp(SEABED[1], Math.max(0, d) / 4);
         else if (d < 25) tmp.copy(SEABED[1]).lerp(SEABED[2], (d - 4) / 21);
         else tmp.copy(SEABED[2]).lerp(SEABED[3], Math.min(1, (d - 25) / 55));
@@ -661,14 +677,16 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   const [x0, y0, x1, y1] = data.meta.extent;
   const maxDim = Math.max(x1 - x0, y1 - y0);
   const [lat0, lon0] = data.meta.origin;
-  const kx = 111320 * Math.cos((lat0 * Math.PI) / 180), ky = 110574;
+  // big places (the Dakar) are built at a reduced scale: scene m = real m * meta.scale
+  const mScale = data.meta.scale || 1;
+  const kx = 111320 * Math.cos((lat0 * Math.PI) / 180) * mScale, ky = 110574 * mScale;
   const ll = (lat, lon, dz = 0) => {
     const x = (lon - lon0) * kx, y = (lat - lat0) * ky;
     return new THREE.Vector3(x, heightAt(x, y) + dz, -y);
   };
 
   let season = cfg.season || 'autumn';
-  const terr = terrainMesh(grid, z, cls, uniforms, { palette: cfg.palette, terraces: cfg.terraces, steep: cfg.steep, soften: cfg.soften, sea: grid.sea != null });
+  const terr = terrainMesh(grid, z, cls, uniforms, { palette: cfg.palette, terraces: cfg.terraces, steep: cfg.steep, soften: cfg.soften, sea: grid.sea != null, dunes: cfg.dunes, seabedScale: cfg.seabedScale });
   scene.add(terr.mesh);
   const depth = maxDim * 0.03;
   scene.add(slabWalls(grid, z, depth));
@@ -753,7 +771,7 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     const walls = seaWalls(grid, z);
     if (walls) scene.add(walls);
     const near = cfg.ferryTo ? [(cfg.ferryTo.lon - lon0) * kx, (cfg.ferryTo.lat - lat0) * ky] : null;
-    fleet = boats({ routes: data.routes, anchored: data.anchored, sea: grid.sea, uniforms, scale: cfg.boatScale || 2.2, leadNear: near });
+    fleet = boats({ routes: data.routes, anchored: data.anchored, sea: grid.sea, uniforms, scale: cfg.boatScale || 2.2, leadNear: near, speed: cfg.boatSpeed || 1 });
     scene.add(fleet.group);
     brollies = umbrellas(data.umbrellas, cfg.umbrellaScale || 2.2);
     if (brollies) scene.add(brollies);
@@ -781,6 +799,9 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     minZoom: l.k === 'town' ? 0 : l.k === '' ? 1.8 : i < 7 ? 0 : 1.4,
   }));
 
+  // place-specific extras (the Dakar's route and convoy)
+  const extra = cfg.extras ? await cfg.extras({ scene, uniforms, data, grid, heightAt, ll, kx, ky, lat0, lon0 }) : null;
+
   // views, follows, film
   const views = cfg.views.map((v) => ({ ...v, target: ll(v.lat, v.lon, v.dz || 0) }));
   const V = Object.fromEntries(views.map((v) => [v.id, v.target]));
@@ -788,7 +809,9 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   if (traffic && cfg.drive) follows.push({ label: cfg.drive, dot: '#c7372f', obj: traffic.lead, zoom: cfg.driveZoom || 9 });
   if (gulls) follows.push({ label: 'Fly with the gulls', dot: '#ffffff', obj: gulls.lead, zoom: 6 });
   if (fleet?.lead && cfg.ferry) follows.push({ label: cfg.ferry, dot: '#1f5fa8', obj: fleet.lead, zoom: cfg.ferryZoom || 5 });
-  const film = cfg.film({ V, ll, gulls: gulls?.lead, car: traffic?.lead, ferry: fleet?.lead });
+  if (extra?.follows) follows.push(...extra.follows);
+  if (extra?.labels) labels.push(...extra.labels);
+  const film = cfg.film({ V, ll, gulls: gulls?.lead, car: traffic?.lead, ferry: fleet?.lead, extra });
 
   const nTrees = data.trees.length / 5;
   const trailKm = data.roads.filter((r) => r.k === 'trail').reduce((s, r) => {
@@ -803,10 +826,10 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     labels, views, follows,
     weather: cfg.weather || { mode: 'snow', label: 'Snow', toast: cfg.snowToast || 'First snow of the season' },
     sky: cfg.sky,
-    toggles: [{
+    toggles: (cfg.noSeason ? [] : [{
       id: 'season', label: cfg.seasonLabel || 'Spring snowmelt', on: season === 'spring',
       onChange(on) { season = on ? 'spring' : 'autumn'; applySeason(); return on ? cfg.springToast : cfg.autumnToast; },
-    }].concat(models.loaded.length ? [{
+    }]).concat(extra?.toggles || []).concat(models.loaded.length ? [{
       id: 'models', label: `Commons 3D models (${models.loaded.length})`, on: true,
       onChange(on) { models.setVisible(on); if (boxes) boxes.visible = !on; return on ? 'Real 3D models from Wikimedia Commons, via Wikidata' : 'Back to the simple boxes'; },
     }] : []),
@@ -821,8 +844,13 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
       fleet?.update(t);
       gulls?.update(t, uniforms.uNight.value);
       falls.setFlow((name) => (season === 'spring' ? cfg.flowSpring?.(name) ?? 1 : cfg.flowAutumn?.(name) ?? 0.3));
+      extra?.update?.(t, dt, ctx);
     },
-    seek(t, dt) { if (traffic) for (let ft = 0; ft < t - dt / 2; ft += dt) traffic.step(dt); },
+    seek(t, dt) {
+      if (traffic) for (let ft = 0; ft < t - dt / 2; ft += dt) traffic.step(dt);
+      extra?.seek?.(t, dt);
+    },
+    onView: extra?.onView,
     lighting() {},
   };
 }
