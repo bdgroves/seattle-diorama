@@ -122,6 +122,7 @@ AMALFI = {
     "sea_floor": -140,
     "veg": "med",
     "maquis_top": 420,
+    "rock_slope": 50,          # maquis clings to all but the sheerest limestone
     "treeline": 1300,
     "tree_cap": 60000,
     "tree_tall": 22,

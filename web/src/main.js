@@ -461,7 +461,7 @@ if (!capture) renderer.setAnimationLoop(() => {
 });
 
 window.__diorama = {
-  place: PLACE.id, applyTime, flyTo, camera, controls, setView, VIEWS,
+  place: PLACE.id, applyTime, flyTo, camera, controls, setView, VIEWS, scene,
   film: {
     duration: film.duration,
     frame(t, dt, type = 'image/png', quality = 0.95) { filmFrame(t, dt); return canvas.toDataURL(type, quality); },

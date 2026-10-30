@@ -130,15 +130,19 @@ export const AMALFI = {
   springToast: 'High summer: umbrellas out, the bays full of boats',
   weather: { mode: 'rain', label: 'Rain', toast: 'A Mediterranean squall rolls in off the sea' },
   terraces: true,
-  roadScale: 1.6, carScale: 2.6,
+  steep: [0.5, 0.28],                   // only the sheer limestone cliffs go bare
+  riverScale: 0.25,                    // the valloni are mostly dry torrent beds
+  roadScale: 1.15, carScale: 2.4, roadColor: '#c9c2b4', soften: 2,
   drive: 'Drive the Amalfi Coast road', driveZoom: 9, driveSpeed: 16,
   driveStart: { lat: 40.6281, lon: 14.4850 },          // Positano, heading east
   ferry: 'Ferry to Capri', ferryZoom: 5,
   ferryTo: { lat: 40.5585, lon: 14.2420 },             // Marina Grande
   buildingColors: ['#f2e3c6', '#f4d1a6', '#efc39b', '#f6efe2', '#e8b6a0', '#f1d58a', '#dcc7b0', '#f7f3ea'],
+  // darker and more saturated than the Sierra: the south-facing slopes take
+  // the full Mediterranean sun
   palette: {
-    autumn: { 0: '#46663a', 1: '#d6d0c2', 2: '#a9a467', 4: '#e4d6c2', 5: '#6f8550', 6: '#d2c8b4', 10: '#678c43' },
-    spring: { 0: '#3f6a3a', 1: '#d9d4c7', 2: '#9fae62', 4: '#e6d8c4', 5: '#7a8c50', 6: '#e3d7bd', 10: '#6e9a45' },
+    autumn: { 0: '#2f5228', 1: '#9e9888', 2: '#8c8a4c', 4: '#c4b196', 5: '#55693a', 6: '#cbbfa6', 10: '#4f7a2e' },
+    spring: { 0: '#2b5427', 1: '#a29c8c', 2: '#7e9445', 4: '#c8b598', 5: '#5b7238', 6: '#ddd0b4', 10: '#4f8530' },
   },
   decid: {
     autumn: [['#c99a3a', '#b07a2c', '#a38a3a', '#7f8a3a', '#c4862f'], ['#c99a3a', '#a38a3a']],   // chestnut, oak
@@ -161,7 +165,7 @@ export const AMALFI = {
   views: [
     { id: 'overview', label: 'Overview', lat: 40.600, lon: 14.420, az: 0.1, polar: 0.9, zoom: 1.0 },
     { id: 'capri', label: 'Capri & the Faraglioni', lat: 40.548, lon: 14.240, az: -0.35, polar: 1.1, zoom: 3.4 },
-    { id: 'positano', label: 'Positano', lat: 40.6281, lon: 14.4850, az: 0.05, polar: 1.15, zoom: 7 },
+    { id: 'positano', label: 'Positano', lat: 40.6290, lon: 14.4850, az: 0.05, polar: 1.12, zoom: 14 },
     { id: 'gods', label: 'Path of the Gods', lat: 40.631, lon: 14.515, az: 0.35, polar: 1.05, zoom: 5 },
     { id: 'furore', label: 'Fiordo di Furore', lat: 40.6205, lon: 14.5503, az: 0.1, polar: 1.15, zoom: 10 },
     { id: 'amalfi', label: 'Amalfi & Atrani', lat: 40.6345, lon: 14.6040, az: -0.15, polar: 1.12, zoom: 8 },

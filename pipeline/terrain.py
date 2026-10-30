@@ -435,6 +435,29 @@ def build(place):
         if land_mask is None:
             land_mask = dem > 0
         sea_mask = ~land_mask
+        # Terrarium's z13 tiles are SRTM (0 over the sea), so shape a seabed
+        # from the distance to shore: steep off the cliffs, like the real
+        # Amalfi coast, which drops past 100 m within a couple of km
+        dist = np.where(sea_mask, np.inf, 0.0)
+        step = np.hypot(g.dx, g.dy)
+        cur = (~sea_mask).copy()
+        for it in range(1, int(4000 / g.dx) + 1):
+            grown = cur.copy()
+            grown[1:, :] |= cur[:-1, :]; grown[:-1, :] |= cur[1:, :]
+            grown[:, 1:] |= cur[:, :-1]; grown[:, :-1] |= cur[:, 1:]
+            if it % 2 == 0:   # alternate 8- and 4-neighbour growth: rounder fronts
+                grown[1:, 1:] |= cur[:-1, :-1]; grown[:-1, :-1] |= cur[1:, 1:]
+                grown[1:, :-1] |= cur[:-1, 1:]; grown[:-1, 1:] |= cur[1:, :-1]
+            new = grown & ~cur
+            dist[new] = it * (g.dx + step) / 2
+            cur = grown
+        dist[np.isinf(dist)] = 4000.0
+        rs = np.random.default_rng(5)
+        wob = Image.fromarray((rs.random((g.ny // 12 + 2, g.nx // 12 + 2)) * 255).astype(np.uint8)).resize((g.nx, g.ny), Image.BICUBIC)
+        wob = np.asarray(wob, np.float32) / 255.0 - 0.5
+        floor = abs(place.get("sea_floor", -140))
+        shelf = 2.5 + floor * (1 - np.exp(-dist / 1300.0)) * (1 + 0.35 * wob)
+        dem[sea_mask] = np.minimum(dem[sea_mask], -shelf[sea_mask])
         dem[sea_mask] = np.minimum(dem[sea_mask], -2.0)
         dem[land_mask] = np.maximum(dem[land_mask], 0.6)
         print(f"  sea: {sea_mask.mean() * 100:.0f}% of the box")
@@ -472,7 +495,7 @@ def build(place):
         cls[dem < place.get("maquis_top", 450)] = SAGE
     cls[dem > tl] = ALPINE
     cls[(slope > 34) & (dem > tl - 400)] = ROCK
-    cls[slope > 38] = ROCK
+    cls[slope > place.get("rock_slope", 38)] = ROCK
     for geoms, c in ((scrub, SAGE), (wood, FOREST), (meadow, MEADOW), (developed, DEVELOPED),
                      (rock, ROCK), (sand, SAND), (glacier, SNOW)):
         if geoms:
@@ -485,6 +508,24 @@ def build(place):
             cls[mask_of(lava)] = LAVA
     if groves:
         cls[mask_of(groves) & (slope < 40)] = GROVE
+    if place["veg"] == "med" and developed:
+        # Italian "residential" landuse wraps whole hillsides of terraced
+        # gardens with a house here and there: only the built-up cores read
+        # as town, the rest is gardens and lemon terraces
+        cnt = np.zeros((g.ny, g.nx), np.float32)
+        for p0, _t, _k in buildings:
+            c = p0.centroid
+            cx, cy = g.px(c.x, c.y)
+            if 0 <= int(cy) < g.ny and 0 <= int(cx) < g.nx:
+                cnt[int(cy), int(cx)] += 1
+        dense = np.zeros_like(cnt)
+        for dy in range(-2, 3):
+            for dx in range(-2, 3):
+                dense += np.roll(np.roll(cnt, dy, 0), dx, 1)
+        core = dense >= place.get("town_density", 14)   # buildings per ~3 ha
+        dev = cls == DEVELOPED
+        cls[dev & ~core] = GROVE
+        print(f"  town cores: {core[dev].mean() * 100:.0f}% of residential land")
     cls[water_mask] = WATER
     cls[sea_mask] = WATER
     # the dry lake margins around Mono read as pale flats

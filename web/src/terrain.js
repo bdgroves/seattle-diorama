@@ -124,6 +124,7 @@ function terrainMesh(grid, z, cls, uniforms, cfg = {}) {
   const jitter = new Float32Array(nx * ny);
   const rnd = mulberry32(37);
   for (let i = 0; i < jitter.length; i++) jitter[i] = rnd();
+  const steep = cfg.steep || [0.82, 0.62];   // [fully vegetated above, bare below] (normal.y)
   function paint(season, snowline) {
     const P = { ...PALETTES[season], ...(cfg.palette?.[season] || {}) };
     const pal = Object.fromEntries(Object.entries(P).map(([k, v]) => [k, new THREE.Color(v)]));
@@ -135,7 +136,9 @@ function terrainMesh(grid, z, cls, uniforms, cfg = {}) {
       const hReal = pos[k * 3 + 1] / grid.vexag + grid.h0;
       // steep ground shows granite whatever grows there
       if (c === FOREST || c === MEADOW || c === ALPINE || c === SAGE || c === GROVE) {
-        tmp.lerp(rockC, THREE.MathUtils.smoothstep(0.82, 0.62, ny_) * 0.85);
+        // (the Sierra look was tuned with this blend; places that set cfg.steep get a plain ramp)
+        const rk = cfg.steep ? 1 - THREE.MathUtils.smoothstep(ny_, steep[1], steep[0]) : THREE.MathUtils.smoothstep(0.82, 0.62, ny_);
+        tmp.lerp(rockC, rk * 0.85);
       }
       if (c === FOREST) tmp.offsetHSL(0, 0, (jitter[k] - 0.5) * 0.05);
       else tmp.offsetHSL(0, 0, (jitter[k] - 0.5) * 0.03);
@@ -154,6 +157,18 @@ function terrainMesh(grid, z, cls, uniforms, cfg = {}) {
         tmp.lerp(rockC, THREE.MathUtils.smoothstep(0.8, 0.5, ny_) * 0.35);
       }
       col[k * 3] = tmp.r; col[k * 3 + 1] = tmp.g; col[k * 3 + 2] = tmp.b;
+    }
+    // soften the cell-sized steps between landcover patches
+    for (let pass = 0; pass < (cfg.soften || 0); pass++) {
+      const src = col.slice();
+      for (let j = 1; j < ny - 1; j++) {
+        for (let i = 1; i < nx - 1; i++) {
+          const k = j * nx + i;
+          for (let ch = 0; ch < 3; ch++) {
+            col[k * 3 + ch] = (src[k * 3 + ch] * 4 + src[(k - 1) * 3 + ch] + src[(k + 1) * 3 + ch] + src[(k - nx) * 3 + ch] + src[(k + nx) * 3 + ch]) / 8;
+          }
+        }
+      }
     }
     g.attributes.color.needsUpdate = true;
   }
@@ -652,7 +667,7 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   };
 
   let season = cfg.season || 'autumn';
-  const terr = terrainMesh(grid, z, cls, uniforms, { palette: cfg.palette, terraces: cfg.terraces, sea: grid.sea != null });
+  const terr = terrainMesh(grid, z, cls, uniforms, { palette: cfg.palette, terraces: cfg.terraces, steep: cfg.steep, soften: cfg.soften, sea: grid.sea != null });
   scene.add(terr.mesh);
   const depth = maxDim * 0.03;
   scene.add(slabWalls(grid, z, depth));
@@ -669,11 +684,12 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   }
   const riverMat = new THREE.MeshStandardMaterial({ color: cfg.riverColor || '#5b9cc0', roughness: 0.3, envMapIntensity: 0.35, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   animateWater(riverMat, uniforms, wScale * 0.5);
-  const riv = ribbonMesh(data.rivers.map((r) => ribbon(r.p, Math.max(r.w * 1.3, grid.dx * 0.5))), riverMat);
+  const rw = cfg.riverScale ?? 1;
+  const riv = rw > 0 ? ribbonMesh(data.rivers.map((r) => ribbon(r.p, Math.max(r.w * 1.3, grid.dx * 0.5) * rw)), riverMat) : null;
   if (riv) scene.add(riv);
 
   // roads and trails
-  const roadMat = new THREE.MeshStandardMaterial({ color: '#dcd5c6', roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+  const roadMat = new THREE.MeshStandardMaterial({ color: cfg.roadColor || '#dcd5c6', roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
   const trailMat = new THREE.MeshStandardMaterial({ color: '#8f6f47', roughness: 1, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
   const ws = Math.max(1, maxDim / 9000);
   const rs = cfg.roadScale ?? ws;
@@ -721,7 +737,7 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   // the sea: surface, water column on the cut edges, boats and beach umbrellas
   let fleet = null, brollies = null;
   if (grid.sea != null) {
-    const sea = seaSurface(grid, uniforms, wScale * 1.5);
+    const sea = seaSurface(grid, uniforms, wScale * (cfg.waveScale || 2.5));
     scene.add(sea.mesh);
     const walls = seaWalls(grid, z);
     if (walls) scene.add(walls);
