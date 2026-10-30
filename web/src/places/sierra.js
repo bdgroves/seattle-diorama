@@ -17,6 +17,8 @@ export const YOSEMITE = {
   springToast: 'Spring snowmelt: the falls are roaring',
   snowToast: 'Snow on the rims',
   drive: 'Drive the valley loop',
+  // Camp 4: the climbers' walk-in campground (36 sites) below Columbia Rock
+  camps: [{ lat: 37.7424, lon: -119.6025, r: 110, n: 36 }],
   buildingColors: ['#8a6b52', '#7d6450', '#9a7d62', '#6f5a48', '#a68b6c'],
   sky: {
     ranges: [[0, 6.3, 0.016, 0.026]],
@@ -30,6 +32,7 @@ export const YOSEMITE = {
     { id: 'falls', label: 'Yosemite Falls', lat: 37.7530, lon: -119.5966, az: 0.15, polar: 1.12, zoom: 4.2 },
     { id: 'halfdome', label: 'Half Dome', lat: 37.7459, lon: -119.5332, az: -2.35, polar: 1.05, zoom: 4 },
     { id: 'glacier', label: 'From Glacier Point', lat: 37.735, lon: -119.545, az: -0.75, polar: 1.1, zoom: 2.6 },
+    { id: 'camp4', label: 'Camp 4', lat: 37.7424, lon: -119.6025, az: -0.35, polar: 0.95, zoom: 16 },
   ],
   film: ({ V }) => [
     { t: 0, target: V.overview, az: -0.7, polar: 0.85, zoom: 1.05, tod: 0.1 },

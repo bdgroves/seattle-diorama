@@ -530,6 +530,45 @@ function gullFlock(center) {
   };
 }
 
+// ------------------------------------------------------------------ campgrounds
+// little tents under the trees, and lantern light after dark
+function campground(spots, uniforms) {
+  const n = spots.length;
+  if (!n) return null;
+  const group = new THREE.Group();
+  const tentG = new THREE.ConeGeometry(1, 1, 4).translate(0, 0.5, 0);
+  const mat = new THREE.MeshStandardMaterial({ roughness: 0.8, flatShading: true });
+  const tents = new THREE.InstancedMesh(tentG, mat, n);
+  const COLORS = ['#e2582f', '#f2b531', '#3b7bc4', '#4f9a4a', '#d63f3f', '#f08a24', '#7b5aa6', '#e9e4d8'];
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), col = new THREE.Color();
+  const lampPos = [];
+  spots.forEach((p, i) => {
+    q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), p.rot + Math.PI / 4);
+    sc.set(p.s * 1.6, p.s * 1.25, p.s * 1.15);
+    m.compose(new THREE.Vector3(p.x, p.h - 0.1, -p.y), q, sc);
+    tents.setMatrixAt(i, m);
+    tents.setColorAt(i, col.set(COLORS[i % COLORS.length]));
+    if (i % 2 === 0) lampPos.push(p.x + p.s * 1.3, p.h + 2, -p.y);
+  });
+  tents.castShadow = true;
+  group.add(tents);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(lampPos, 3));
+  const glow = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    uniforms: { uNight: uniforms.uNight, uTime: uniforms.uTime },
+    vertexShader: `uniform float uNight, uTime; varying float vA;
+      void main(){ vA = uNight * (0.75 + 0.25 * sin(uTime * 7.0 + position.x)); gl_PointSize = 11.0;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `varying float vA; void main(){ float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard;
+      gl_FragColor = vec4(vec3(1.0, 0.68, 0.32) * 2.2, vA * smoothstep(0.5, 0.0, d)); }`,
+  });
+  const pts = new THREE.Points(g, glow);
+  pts.renderOrder = 6;
+  group.add(pts);
+  return group;
+}
+
 // ------------------------------------------------------------------ the place
 export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   const { data, z, cls } = await loadTerrain(base, cfg.id);
@@ -587,6 +626,20 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   scene.add(falls.group);
   const lamps = headlamps(data.lamps, uniforms);
   if (lamps) scene.add(lamps);
+  // campgrounds (Camp 4 below El Cap's neighbor, Sentinel Rock's shadow)
+  const rndC = mulberry32(1960);
+  const spots = [];
+  for (const c of cfg.camps || []) {
+    const kx_ = kx, ky_ = ky;
+    const cx = (c.lon - lon0) * kx_, cy = (c.lat - lat0) * ky_;
+    for (let i = 0; i < c.n; i++) {
+      const a = rndC() * Math.PI * 2, d = c.r * Math.sqrt(rndC());
+      const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d * 0.7;
+      spots.push({ x, y, h: heightAt(x, y), s: 5 + rndC() * 2.5, rot: rndC() * 6.28 });
+    }
+  }
+  const camps = campground(spots, uniforms);
+  if (camps) scene.add(camps);
   const tufa = tufaField(data.tufa, 3.4);
   if (tufa) scene.add(tufa);
   const gulls = gullFlock(data.gulls);

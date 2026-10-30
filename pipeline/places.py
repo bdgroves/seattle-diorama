@@ -32,6 +32,7 @@ YOSEMITE = {
         ("Vernal Fall", r"^vernal fall", 37.7276, -119.5441, 60, "fall"),
         ("Nevada Fall", r"^nevada fall", 37.7246, -119.5334, 60, "fall"),
         ("Tunnel View", r"^tunnel view$", 37.7156, -119.6773, 40, ""),
+        ("Camp 4", r"^camp 4$|^camp iv$", 37.7423, -119.6022, 35, ""),
         ("The Ahwahnee", r"ahwahnee", 37.7461, -119.5743, 40, ""),
     ],
     # (OSM-name regex, lat, lon of the lip, drop in m from NPS / Wikipedia)
