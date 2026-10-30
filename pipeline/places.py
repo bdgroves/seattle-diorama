@@ -236,4 +236,5 @@ ZERMATT = {
     "walls": [(45.9790, 7.6650, 420), (45.9775, 7.6600, 300)],
 }
 
-PLACES = {p["id"]: p for p in (YOSEMITE, TUOLUMNE, MONO, AMALFI, ZERMATT)}
+# Mono Lake is retired from the picker (Oct 2026); its config stays here
+PLACES = {p["id"]: p for p in (YOSEMITE, TUOLUMNE, AMALFI, ZERMATT)}

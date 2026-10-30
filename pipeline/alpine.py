@@ -170,7 +170,7 @@ def extras(place, els, g, zat, hat, dem, cls, slope, clip, rnd, vex):
                 c, r = (x - g.x0) / g.dx, (g.y1 - y) / g.dy
                 ii, jj = int(round(c)), int(round(r))
                 if 0 <= jj < ok.shape[0] and 0 <= ii < ok.shape[1] and ok[jj, ii]:
-                    breed = 2 if rnd.random() < 0.08 else (0 if rnd.random() < 0.55 else 1)
+                    breed = 2 if rnd.random() < 0.16 else (0 if rnd.random() < 0.55 else 1)
                     cows += [round(x, 1), round(y, 1), round(zat(x, y), 1), round(rnd.uniform(0, 6.28), 2), breed]
                     break
     print(f"  lifts: {len(lifts)}, railways: {len(rails_out)}, pistes: {len(pistes)}, cows: {len(cows) // 5} in {len(centers)} herds")

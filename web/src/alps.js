@@ -380,7 +380,8 @@ function cowHerd(flat, scale) {
     B(0.25, 0.18, 0.36, 1.55, 1.25, 0, '#e8c9b5'),                // muzzle
     ...[[0.7, 0.28], [0.7, -0.28], [-0.7, 0.28], [-0.7, -0.28]].map(([x, z]) => B(0.18, 0.75, 0.18, x, 0.38, z, '#ffffff')),
     B(0.08, 0.6, 0.08, -1.05, 1.0, 0, '#ffffff'),                 // tail
-    B(0.08, 0.22, 0.08, 1.2, 1.65, 0.18, '#e9e2cf'), B(0.08, 0.22, 0.08, 1.2, 1.65, -0.18, '#e9e2cf'),   // horns
+    B(0.07, 0.07, 0.3, 1.25, 1.62, 0.32, '#e9e2cf'), B(0.07, 0.07, 0.3, 1.25, 1.62, -0.32, '#e9e2cf'),   // horns
+    B(0.07, 0.22, 0.07, 1.3, 1.75, 0.45, '#e9e2cf'), B(0.07, 0.22, 0.07, 1.3, 1.75, -0.45, '#e9e2cf'),
     B(0.22, 0.26, 0.22, 1.0, 0.82, 0, '#d4a531'),                 // the bell
   ]);
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75 });
@@ -389,14 +390,28 @@ function cowHerd(flat, scale) {
   // the Alpabzug crowns: flowers and a big ribboned bell
   const fancyIdx = [];
   for (let i = 0; i < n; i++) if (flat[i * 5 + 4] === 2) fancyIdx.push(i);
-  const crownG = BGU.mergeGeometries([
-    ...[-0.24, -0.08, 0.08, 0.24].map((z, k) => paint(new THREE.SphereGeometry(0.14, 6, 4).translate(1.2, 1.78, z), ['#e2312b', '#f2c230', '#ffffff', '#3f7fd6'][k])),
-    B(0.5, 0.06, 0.5, 1.2, 1.7, 0, '#2f8f3e'),
-    B(0.36, 0.42, 0.36, 1.0, 0.7, 0, '#e2b33a'), B(0.05, 0.4, 0.4, 1.0, 1.0, 0, '#c4232c'),
-  ]);
+  // a tall cone of flowers on the head with a little fir on top, paper
+  // rosettes, and the big Treichel bell on an embroidered strap
+  const FLOWER = ['#e2312b', '#f2c230', '#ffffff', '#3f7fd6', '#e86ab0', '#f08a24', '#7a2f8f'];
+  const parts = [];
+  let fk = 0;
+  for (let tier = 0; tier < 5; tier++) {
+    const r = 0.34 - tier * 0.06, y = 1.78 + tier * 0.17, n = Math.max(3, 9 - tier * 2);
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * Math.PI * 2 + tier * 0.4;
+      parts.push(paint(new THREE.SphereGeometry(0.1, 6, 4).translate(1.18 + Math.cos(a) * r * 0.7, y, Math.sin(a) * r), FLOWER[fk++ % FLOWER.length]));
+    }
+  }
+  parts.push(paint(new THREE.ConeGeometry(0.14, 0.45, 6).translate(1.18, 2.85, 0), '#2f6b35'));      // the fir sprig
+  parts.push(paint(new THREE.ConeGeometry(0.36, 0.2, 10).translate(1.18, 1.72, 0), '#2f8f3e'));     // greenery base
+  parts.push(B(0.12, 0.5, 0.02, 1.0, 1.25, 0.47, '#c4232c'), B(0.12, 0.5, 0.02, 1.0, 1.25, -0.47, '#c4232c'));   // the strap
+  parts.push(B(0.14, 0.12, 0.98, 1.0, 1.52, 0, '#1f2328'));
+  parts.push(paint(new THREE.CylinderGeometry(0.2, 0.32, 0.55, 10).translate(1.05, 0.68, 0), '#d4a531'));      // the Treichel
+  for (const z of [-0.3, 0.3]) parts.push(paint(new THREE.CylinderGeometry(0.12, 0.12, 0.03, 10).rotateX(Math.PI / 2).translate(1.1, 1.55, z * 1.55), '#ffffff'));
+  const crownG = BGU.mergeGeometries(parts);
   const crowns = new THREE.InstancedMesh(crownG, mat, Math.max(1, fancyIdx.length));
   crowns.count = fancyIdx.length;
-  const COAT = ['#2b211c', '#8a6d55', '#9a7a5e'];              // Eringer black, Brown Swiss
+  const COAT = ['#2b211c', '#8a6d55', '#2b211c'];              // Eringer black, Brown Swiss; the queens are Eringer
   const col = new THREE.Color();
   const cows = [];
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3(scale, scale, scale);
@@ -474,6 +489,50 @@ function paragliders(spots, heightAt, scale) {
   return { group, update, lead };
 }
 
+// ------------------------------------------------------------------ alphorn players
+function alphorns(points, scale) {
+  const group = new THREE.Group();
+  if (!points.length) return { group, update() {} };
+  const wood = '#a8693a', band = '#4a2c17';
+  const parts = [
+    B(0.2, 0.85, 0.2, 0, 0.43, 0.13, '#2b2622'), B(0.2, 0.85, 0.2, 0, 0.43, -0.13, '#2b2622'),   // trousers
+    B(0.34, 0.12, 0.5, 0, 0.9, 0, '#2b2622'),
+    B(0.3, 0.6, 0.48, 0, 1.25, 0, '#f6f3ea'),                                                     // white shirt
+    B(0.32, 0.5, 0.5, 0.0, 1.27, 0, '#c4232c'),                                                   // red vest
+    B(0.24, 0.26, 0.24, 0.02, 1.7, 0, '#e9c6a6'),                                                 // head
+    B(0.46, 0.04, 0.46, 0.02, 1.85, 0, '#1f1c1a'), B(0.24, 0.2, 0.24, 0.02, 1.96, 0, '#1f1c1a'),  // the hat
+    B(0.5, 0.1, 0.1, 0.25, 1.45, 0.18, '#f6f3ea'), B(0.5, 0.1, 0.1, 0.25, 1.45, -0.18, '#f6f3ea'), // arms to the horn
+  ];
+  // the horn: from the lips down and forward 3.4 m to the upturned bell on the grass
+  const a = new THREE.Vector3(0.2, 1.62, 0), b = new THREE.Vector3(3.5, 0.32, 0);
+  const segs = 8;
+  for (let k = 0; k < segs; k++) {
+    const p0 = a.clone().lerp(b, k / segs), p1 = a.clone().lerp(b, (k + 1) / segs);
+    const len = p0.distanceTo(p1), mid = p0.clone().add(p1).multiplyScalar(0.5);
+    const r0 = 0.025 + 0.06 * (k / segs) ** 2, r1 = 0.025 + 0.06 * ((k + 1) / segs) ** 2;
+    const cyl = new THREE.CylinderGeometry(r1, r0, len, 8).rotateZ(Math.PI / 2 + Math.atan2(p1.y - p0.y, p1.x - p0.x) - Math.PI).translate(mid.x, mid.y, mid.z);
+    parts.push(paint(cyl, k % 3 === 2 ? band : wood));
+  }
+  parts.push(paint(new THREE.CylinderGeometry(0.2, 0.09, 0.4, 12).translate(3.55, 0.48, 0), wood));
+  parts.push(paint(new THREE.CylinderGeometry(0.205, 0.205, 0.06, 12).translate(3.55, 0.7, 0), band));
+  const geo = BGU.mergeGeometries(parts);
+  const mesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 }), points.length);
+  mesh.castShadow = true;
+  group.add(mesh);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3(scale, scale, scale);
+  const e = new THREE.Euler();
+  function update(t) {
+    points.forEach((pt, i) => {
+      p.set(pt.x, pt.z, -pt.y);
+      e.set(0, pt.rot, Math.sin(t * 1.3 + i) * 0.02, 'YZX');      // a slow sway while they play
+      mesh.setMatrixAt(i, m4.compose(p, q.setFromEuler(e), sc));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  }
+  update(0);
+  return { group, update };
+}
+
 // ------------------------------------------------------------------ Swiss flags
 function swissFlags(points, scale) {
   const c = document.createElement('canvas'); c.width = 64; c.height = 64;
@@ -536,6 +595,13 @@ export async function buildAlps({ scene, uniforms, data, heightAt, ll, cfg }) {
   group.add(gliders.group);
   const flags = swissFlags((cfg.flags || []).map((f) => ({ ...xy(f[0], f[1]), rot: f[2] || 0 })), S * 1.6);
   group.add(flags.group);
+  // alphorn players, each turned to face the Matterhorn
+  const peak = cfg.facing ? xy(cfg.facing[0], cfg.facing[1]) : null;
+  const horns = alphorns((cfg.alphorns || []).map((f) => {
+    const o = xy(f[0], f[1]);
+    return { ...o, rot: peak ? Math.atan2(peak.y - o.y, peak.x - o.x) : 0 };
+  }), S * 2);
+  group.add(horns.group);
 
   let winter = false;
   function setSeason(season) {
@@ -544,6 +610,7 @@ export async function buildAlps({ scene, uniforms, data, heightAt, ll, cfg }) {
     pistes.setWinter(winter);
     cows.group.visible = !winter;
     gliders.group.visible = !winter;
+    horns.group.visible = !winter;
   }
   const follows = [];
   const gg = Object.keys(trains.leads).find((k) => /gornergrat/i.test(k));
@@ -559,7 +626,7 @@ export async function buildAlps({ scene, uniforms, data, heightAt, ll, cfg }) {
       lifts.update(t);
       trains.update(t);
       pistes.update(t, Math.min(dt, 0.1));
-      if (!winter) { cows.update(t); gliders.update(t); }
+      if (!winter) { cows.update(t); gliders.update(t); horns.update(t); }
       flags.update(t);
     },
     seek(t) { lifts.update(t); trains.update(t); for (let k = 0; k < 60; k++) pistes.update(t, 0.5); },

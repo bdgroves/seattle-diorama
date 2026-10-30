@@ -22,13 +22,6 @@ export const PLACES = [
     load: () => import('./sierra.js').then((m) => m.sierraLoader(m.TUOLUMNE)),
   },
   {
-    id: 'mono', name: 'Mono Lake',
-    eyebrow: 'Mono Basin, California', title: 'Mono <em>Lake</em>',
-    blurb: 'Tufa towers, Negit and Paoha, and the Sierra rising behind the lake.',
-    lat: 37.99, lon: -119.04, where: 'at Mono Lake',
-    load: () => import('./sierra.js').then((m) => m.sierraLoader(m.MONO)),
-  },
-  {
     id: 'amalfi', name: 'Amalfi Coast', tz: 'Europe/Rome',
     eyebrow: 'Campania, Italy', title: 'The Amalfi <em>Coast</em>',
     blurb: 'Capri, Positano, Ravello and the coast road, cliffs dropping into a turquoise sea.',

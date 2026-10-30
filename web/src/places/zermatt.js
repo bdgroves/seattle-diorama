@@ -44,6 +44,8 @@ const ZERMATT = {
     { from: [45.9839, 7.7844], to: [46.0180, 7.7470] },   // off Gornergrat
     { from: [46.0122, 7.7698], to: [46.0230, 7.7470] },   // Sunnegga
   ],
+  alphorns: [[45.98905, 7.7712], [45.9845, 7.7848], [46.0117, 7.7705], [46.0035, 7.7310]],
+  facing: [45.9763, 7.6586],
   flags: [[45.9824, 7.6740, 0.4], [45.9839, 7.7844, 2.0], [46.0207, 7.7491, 1.0], [45.9381, 7.7298, 0]],
   stats: ({ data, nTrees, extra }) => {
     const i = extra?.info || {};
@@ -60,7 +62,8 @@ const ZERMATT = {
     { id: 'paradise', label: 'Matterhorn Glacier Paradise', lat: 45.9420, lon: 7.7300, az: 3.4, polar: 1.1, zoom: 6 },
     { id: 'sunnegga', label: 'Sunnegga & Stellisee', lat: 46.0090, lon: 7.7900, az: 1.4, polar: 1.12, zoom: 7 },
     { id: 'gorner', label: 'Gorner Glacier', lat: 45.9560, lon: 7.8000, az: 2.0, polar: 1.0, zoom: 2.6 },
-    { id: 'pastures', label: 'Cows at Findeln', lat: 46.0128, lon: 7.7618, az: 2.4, polar: 1.12, zoom: 22 },
+    { id: 'pastures', label: 'Cows above Findeln', lat: 46.00654, lon: 7.78239, az: 0.9, polar: 1.1, zoom: 50 },
+    { id: 'alphorn', label: 'Alphorn at Riffelsee', lat: 45.98905, lon: 7.7712, az: 1.2, polar: 1.25, zoom: 75 },
   ],
   film: ({ V, extra }) => {
     const L = extra?.leads || {};
@@ -70,7 +73,7 @@ const ZERMATT = {
       { t: 12, target: V.zermatt, az: 2.6, polar: 1.05, zoom: 10, tod: 0.2 },
       { t: 18, target: L.train ? () => L.train.pos : V.gornergrat, az: 2.0, polar: 1.08, zoom: 14, tod: 0.27 },
       { t: 24, target: V.gornergrat, az: 3.75, polar: 1.12, zoom: 3.0, tod: 0.34 },
-      { t: 30, target: V.pastures, az: 2.4, polar: 1.12, zoom: 20, tod: 0.42 },
+      { t: 30, target: V.pastures, az: 2.4, polar: 1.15, zoom: 45, tod: 0.42 },
       { t: 36, target: L.lift ? () => L.lift.pos : V.paradise, az: 1.8, polar: 1.05, zoom: 11, tod: 0.5 },
       { t: 42, target: V.riffelsee, az: 1.55, polar: 1.2, zoom: 12, tod: 0.62 },
       { t: 48, target: V.hornli, az: 2.2, polar: 1.1, zoom: 7, tod: 0.74 },
