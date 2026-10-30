@@ -6,6 +6,7 @@ import { buildTrees, buildTraffic } from '../life.js';
 import { buildSpaceNeedle, buildMonorail, westinBuildings, buildSpheres, buildArtworks, BEAM_TOP } from '../landmarks.js';
 import { animateWater, buildFerry } from '../bay.js';
 import { SEATTLE_SKY } from '../sky.js';
+import { buildModels, creditsHtml } from '../models.js';
 
 export async function load({ scene, uniforms, base }) {
   const res = await fetch(`${base}data/scene.json`);
@@ -23,6 +24,25 @@ export async function load({ scene, uniforms, base }) {
   const [nx, ny] = data.landmarks.needle;
   needle.group.position.copy(toV3(nx, ny, 0));
   scene.add(needle.group);
+
+  // real 3D models from Wikimedia Commons (via OSM wikidata tags); the
+  // hand-built Needle, Westin and Spheres stay unless Commons has them
+  const HAND = { Q5317: [needle.group] };
+  const models = await buildModels(data.models || [], { base });
+  scene.add(models.group);
+  const boxes = data.model_boxes?.length ? buildBuildings(data.model_boxes, uniforms) : null;
+  if (boxes) { boxes.visible = false; scene.add(boxes); }
+  const replaced = models.loaded.flatMap((m) => HAND[m.qid] || []);
+  const setModels = (on) => {
+    models.setVisible(on);
+    if (boxes) boxes.visible = !on;
+    for (const o of replaced) o.visible = !on;
+  };
+  // a Commons model always beats a plain box; next to a hand-built landmark it
+  // starts switched off (the Space Needle's Commons model is a coarse 3,000-
+  // triangle solid; the hand-built one has the legs, the halo and the lights)
+  const modelsOn = models.loaded.some((m) => !HAND[m.qid]);
+  setModels(modelsOn);
   const mono = buildMonorail(data.monorail, uniforms);
   scene.add(mono.group);
   const spheres = data.landmarks.spheres?.length ? buildSpheres(data.landmarks.spheres, uniforms) : null;
@@ -92,7 +112,12 @@ export async function load({ scene, uniforms, base }) {
     ],
     weather: { mode: 'rain', label: 'Rain', toast: 'Classic Seattle drizzle' },
     sky: SEATTLE_SKY,
-    toggles: [],
+    toggles: models.loaded.length ? [{
+      id: 'models', on: modelsOn,
+      label: models.loaded.length === 1 ? `Commons model: ${models.loaded[0].name}` : `Commons 3D models (${models.loaded.length})`,
+      onChange(on) { setModels(on); return on ? 'Real 3D models from Wikimedia Commons, via Wikidata' : 'Back to the simple boxes'; },
+    }] : [],
+    creditsHtml: creditsHtml(models.loaded),
     film, simOffset: 2,
     stats: `${data.buildings.length.toLocaleString()} buildings · ${(data.trees.length / 4).toLocaleString()} trees · ${data.meta.attribution}`,
     update(t, dt) {

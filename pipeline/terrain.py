@@ -601,7 +601,13 @@ def build(place):
     print(f"  roads: {len(roads_out)}, lanes for traffic: {len(lanes_out)}")
 
     # ---- buildings, sitting on the ground
-    bld_out = []
+    import models3d
+    models_out, model_keys = models3d.place(pid, g.proj, clip)
+    for m in models_out:
+        m["z"] = round(float(zat(m["x"], m["y"])), 1)
+    if models_out:
+        print(f"  Commons 3D models: {', '.join(m['name'] for m in models_out)}")
+    bld_out, model_boxes = [], []
     for p0, t, key in buildings:
         for p in polys(p0.intersection(clip)):
             if p.area < place.get("min_building", 12):
@@ -621,8 +627,9 @@ def build(place):
             if H is None:
                 H = 5.5 if p.area < 400 else 8 + 4 * random.Random(key).random()
             sd = int(hashlib.md5(key.encode()).hexdigest()[:6], 16) / 0xFFFFFF
-            bld_out.append({"r": [ring], "m": round(base - 2, 1), "h": round(base + H, 1),
-                            "k": "res" if p.area < 300 else "civ", "s": round(sd, 3)})
+            (model_boxes if key in model_keys else bld_out).append(
+                {"r": [ring], "m": round(base - 2, 1), "h": round(base + H, 1),
+                 "k": "res" if p.area < 300 else "civ", "s": round(sd, 3)})
     print(f"  buildings: {len(bld_out)}")
 
     # ---- trees
@@ -936,6 +943,7 @@ def build(place):
         "buildings": bld_out, "trees": trees, "labels": labels_out, "falls": falls_out,
         "lamps": lamps, "tufa": tufa, "gulls": gulls,
         "drive": drive, "routes": routes, "anchored": anchored, "umbrellas": umbrellas,
+        "models": models_out, "model_boxes": model_boxes,
     }
     (OUT / f"{pid}.json").write_text(json.dumps(scene, separators=(",", ":"), default=float))
     kb = ((OUT / f"{pid}.json").stat().st_size + (OUT / f"{pid}.bin").stat().st_size) / 1e6

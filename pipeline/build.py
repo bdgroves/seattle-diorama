@@ -21,6 +21,7 @@ from shapely.ops import linemerge, polygonize, split, unary_union
 from shapely.prepared import prep
 
 import config
+import models3d
 
 # ----------------------------------------------------------------------------
 # projection
@@ -435,6 +436,10 @@ def main():
     # ---------------- buildings (outline skipped when it has parts)
     part_tree = STRtree([p["geom"] for p in parts]) if parts else None
     out_b, foot = [], []
+    # real 3D models from Wikidata/Commons: their boxes go in a separate list
+    # so the viewer can swap between the model and the plain box
+    models_out, model_keys = models3d.place("seattle", proj, CLIP)
+    model_boxes = []
 
     def emit(rec):
         g = rec["geom"]
@@ -446,8 +451,8 @@ def main():
         for p in polys_of(g.intersection(CLIP)):
             rings = poly_rings(p, 0.2)
             if rings:
-                out_b.append({"r": rings, "h": h, "m": m, "k": kind,
-                              "s": round(seed_of(rec["key"]), 3)})
+                (model_boxes if rec["key"] in model_keys else out_b).append(
+                    {"r": rings, "h": h, "m": m, "k": kind, "s": round(seed_of(rec["key"]), 3)})
                 if m < 3:
                     foot.append(p)
 
@@ -598,6 +603,8 @@ def main():
             "spheres": sph_out,
         },
         "artworks": art_out,
+        "models": models_out,
+        "model_boxes": model_boxes,
         "places": [p[:5] for p in places],
     }
     out = Path(args.output)

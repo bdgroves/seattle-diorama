@@ -64,7 +64,8 @@ body.ready .time { transform: translateX(-50%); }
 .label::after { content: ''; position: absolute; left: -1px; top: -16px; width: 2px; height: 16px; background: rgba(255,252,247,.9); }
 
 #meta { position: fixed; left: 20px; bottom: 16px; font-size: 11px; color: rgba(40,35,30,.75);
-  background: rgba(255,255,255,.55); padding: 4px 9px; border-radius: 8px; }
+  background: rgba(255,255,255,.55); padding: 4px 9px; border-radius: 8px; max-width: max(280px, calc(50vw - 300px)); }
+#meta a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 #fps { position: fixed; right: 20px; bottom: 16px; font: 500 11px Inter, monospace; color: rgba(40,35,30,.7);
   background: rgba(255,255,255,.55); padding: 4px 9px; border-radius: 8px; }
 #loading { position: fixed; inset: 0; display: grid; place-items: center; font-family: Fraunces, serif; font-size: 22px; color: var(--ink-soft); }

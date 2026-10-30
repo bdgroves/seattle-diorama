@@ -105,6 +105,39 @@ Outside the US there's no 3DEP, so the land comes from **Terrain Tiles on AWS**
   chestnuts gold.
 - Vesuvius stands on the horizon to the north, Ischia off to the west.
 
+## Real 3D models from Wikidata (and how to add more)
+
+Every build follows the `wikidata=` tag on each OpenStreetMap feature to
+Wikidata's **3D model** property ([P4896](https://www.wikidata.org/wiki/Property:P4896)),
+which points at an STL file on Wikimedia Commons. When one exists, the model is
+downloaded with its license and author, stood on the feature's real OSM
+footprint (sized to its tagged height, or to the footprint), and credited in
+the corner of the viewer. A **Commons model** toggle swaps between the model
+and the plain box (or the hand-built landmark).
+
+As of October 2026, 532 features across the five places carry a wikidata tag,
+and one has a 3D model: the **Space Needle** (Q5317,
+[Space Needle.stl](https://commons.wikimedia.org/wiki/File:Space_Needle.stl),
+Microsoft, CC BY 4.0). It's a coarse solid, so the hand-built Needle stays the
+default and the Commons one is a toggle away. For a plain building, a model
+always wins over a box, so new ones go on by default.
+
+**Want to help?** Upload an STL of a landmark to Commons under a free license,
+then add it to the landmark's Wikidata item as "3D model". The next weekly
+build picks it up. Good candidates, all already tagged in OSM:
+
+- Seattle: the Westin Seattle (Q7988924), the Spheres (Q48596158), MoPOP (Q1384356), Climate Pledge Arena (Q977529), Benaroya Hall (Q3892069), Pacific Science Center (Q3848341)
+- Yosemite: the Ahwahnee (Q4696448), Yosemite Valley Chapel (Q8055943), the Yosemite Museum (Q8055932)
+- Tuolumne Meadows: Parsons Memorial Lodge (Q1848127), Soda Springs Cabin (Q7553192)
+- Amalfi Coast: Duomo di Amalfi (Q686306), Duomo di Ravello (Q1246201), Villa Rufolo (Q641244), Villa Jovis (Q2165460), Casa Malaparte (Q2165447), Faro di Punta Carena (Q372769)
+
+The full list of what was checked, place by place, is `models-report.txt` on
+the `debug-data` branch.
+
+```bash
+pixi run models   # after fetch + sierra-fetch; writes web/public/data/models/
+```
+
 ## Quick start
 
 Requires [pixi](https://pixi.sh).

@@ -286,6 +286,11 @@ for (const tg of place.toggles) {
     tg.on = !tg.on; setToggle(`tg-${tg.id}`, tg.on); toast(tg.onChange(tg.on));
   });
 }
+for (const tg of place.toggles) {        // ?models=0 and the like
+  if (tg.id === 'season' || !params.has(tg.id)) continue;
+  const want = params.get(tg.id) !== '0';
+  if (want !== tg.on) { tg.on = want; setToggle(`tg-${tg.id}`, want); tg.onChange(want); }
+}
 if (params.has('season')) {
   const tg = place.toggles.find((x) => x.id === 'season');
   if (tg && params.has('season') && (params.get('season') === 'spring') !== tg.on) { tg.on = !tg.on; setToggle('tg-season', tg.on); tg.onChange(tg.on); }
@@ -356,6 +361,7 @@ canvas.addEventListener('pointerdown', () => { tween = null; });
 controls.addEventListener('start', () => { if (!follow) tween = null; });
 addEventListener('keydown', (e) => { if (e.key === 'Escape') follow = null; });
 document.getElementById('meta').textContent = place.stats;
+if (place.creditsHtml) document.getElementById('meta').insertAdjacentHTML('beforeend', place.creditsHtml);
 addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
   composer.setSize(innerWidth, innerHeight);

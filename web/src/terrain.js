@@ -7,6 +7,7 @@ import { buildBuildings, flatLayer } from './city.js';
 import { CAR_COLORS, carGeometry, lightsGeometry, mulberry32 } from './life.js';
 import { animateWater } from './bay.js';
 import { seaSurface, seaWalls, boats, umbrellas } from './coast.js';
+import { buildModels, creditsHtml } from './models.js';
 
 // landcover classes (match pipeline/terrain.py)
 const FOREST = 0, ROCK = 1, MEADOW = 2, WATER = 3, DEVELOPED = 4, SAGE = 5, SAND = 6, SNOW = 7, ALPINE = 8, LAVA = 9, GROVE = 10;
@@ -704,6 +705,16 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     const list = data.buildings.map((b) => ({ ...b, c: colors[Math.floor(b.s * 997) % colors.length], noRoofBox: true }));
     scene.add(buildBuildings(list, uniforms));
   }
+  // real 3D models of landmarks from Wikimedia Commons, with the boxes they replace on standby
+  const models = await buildModels(data.models || [], { base, groundZ: (x, y) => heightAt(x, y) });
+  scene.add(models.group);
+  let boxes = null;
+  if (data.model_boxes?.length) {
+    const colors = cfg.buildingColors || ['#8a6b52', '#7d6450', '#9a7d62', '#b49c80'];
+    boxes = buildBuildings(data.model_boxes.map((b) => ({ ...b, c: colors[Math.floor(b.s * 997) % colors.length], noRoofBox: true })), uniforms);
+    boxes.visible = false;
+    scene.add(boxes);
+  }
 
   const trees = treeMeshes(data.trees, season, cfg.decid || DECID);
   scene.add(trees.group);
@@ -795,7 +806,11 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     toggles: [{
       id: 'season', label: cfg.seasonLabel || 'Spring snowmelt', on: season === 'spring',
       onChange(on) { season = on ? 'spring' : 'autumn'; applySeason(); return on ? cfg.springToast : cfg.autumnToast; },
-    }],
+    }].concat(models.loaded.length ? [{
+      id: 'models', label: `Commons 3D models (${models.loaded.length})`, on: true,
+      onChange(on) { models.setVisible(on); if (boxes) boxes.visible = !on; return on ? 'Real 3D models from Wikimedia Commons, via Wikidata' : 'Back to the simple boxes'; },
+    }] : []),
+    creditsHtml: creditsHtml(models.loaded),
     film, simOffset: 0,
     stats: cfg.stats ? cfg.stats({ data, nTrees, trailKm, boats: fleet?.count || 0 })
       : `${Math.round(nTrees).toLocaleString()} trees · ${Math.round(trailKm)} km of trails · ${data.meta.attribution}`,
