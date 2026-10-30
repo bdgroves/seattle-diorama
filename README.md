@@ -45,6 +45,40 @@ a few hundred lines of shader code, and runs at 60 fps in the browser.
 |---|---|
 | ![Seattle Center](docs/needle_hero.jpg) | ![Seattle at night](docs/night_hero.jpg) |
 
+## The Sierra: Yosemite Valley, Tuolumne Meadows, Mono Lake
+
+The same engine also carves three Sierra Nevada places from **USGS 3DEP
+elevation** and OpenStreetMap. Pick one with the buttons under the title,
+or link straight to it with `?place=yosemite`, `?place=tuolumne` or
+`?place=mono`.
+
+- **Yosemite Valley.** El Capitan, Half Dome, Glacier Point and the Merced.
+  Seven waterfalls are traced down their real cliffs and matched to their
+  real heights, from Upper Yosemite Fall (436 m) to Vernal (97 m). At night
+  climbers' headlamps glow on El Cap and Half Dome.
+- **Tuolumne Meadows.** Lembert, Pothole and Fairview Domes, Cathedral and
+  Unicorn Peaks, and the Tuolumne River winding through golden meadows, with
+  cars on Tioga Road.
+- **Mono Lake.** The whole lake, with black-cinder Negit (and its gulls) and
+  pale Paoha, plus South Tufa's towers and the white band of lakebed exposed
+  since the 1940s. The Sierra escarpment rises behind Lee Vining, and traffic
+  runs on US 395.
+
+Each place has a **season** toggle and **snow**:
+
+- **Autumn**, the default, is how they look in late October. Gold oaks and
+  aspens, tawny meadows, and Yosemite Falls usually dry.
+- **Spring snowmelt** greens everything up, puts snow on the rims and makes
+  the falls roar.
+- **Snow** brings a storm in and lowers the snowline as it falls.
+
+The slabs have layered rock walls, 100 m contour lines (50 m at Tuolumne)
+and their own mountain horizons, with Dana and the crest behind Mono Lake.
+
+```bash
+pixi run sierra   # fetch elevation + OSM for all three and build them
+```
+
 ## Quick start
 
 Requires [pixi](https://pixi.sh).
@@ -93,7 +127,12 @@ There are two ways to get the video:
   pixi run film --res 3840x2160        # 4K
   pixi run film --seconds 8 --fps 30   # quick test
   pixi run film --headed               # if headless rendering has no GPU
+  pixi run film --place yosemite       # or tuolumne, mono
   ```
+
+  On GitHub: **Actions → Render the film → Run workflow** (choose the place),
+  or push to a `render-film-<place>` branch. The film is split across 20
+  free machines, and the result lands on the `film` branch.
 
 ## How it works
 
@@ -143,12 +182,12 @@ deploys to GitHub Pages. The built `scene.json` is also kept on the
 ## Project layout
 
 ```
-pipeline/   config.py · fetch.py · build.py · film.py · make_test_osm.py
-web/src/    main.js · city.js · landmarks.js · life.js · bay.js · weather.js · sky.js · film.js
+pipeline/   config.py · fetch.py · build.py · places.py · terrain.py · film.py · make_test_osm.py
+web/src/    main.js · places/ (seattle, sierra) · city.js · terrain.js · landmarks.js · life.js · bay.js · weather.js · sky.js · film.js
 ```
 
-URL parameters: `?view=needle|westin|overview` · `?t=0..1` (time of day) ·
+URL parameters: `?place=seattle|yosemite|tuolumne|mono` · `?view=…` (any Fly-to id) · `?season=spring` · `?t=0..1` (time of day) ·
 `?rain=1` · `?live=1` · `?follow=0|1` · `?tilt=0` · `?ui=0` · `?film=play`
 
 Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright)
-contributors, ODbL. Landmark models are stylized interpretations.
+contributors, ODbL. Elevation: [USGS 3D Elevation Program](https://www.usgs.gov/3d-elevation-program). Landmark models are stylized interpretations.
