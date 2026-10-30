@@ -29,6 +29,8 @@ city = { depends-on = ["fetch", "build"] }
 sierra = "python pipeline/terrain.py all"
 sierra-fetch = "python pipeline/terrain.py fetch"
 sierra-build = "python pipeline/terrain.py build"
+# Real 3D models of landmarks: OSM wikidata tags -> Wikidata P4896 -> Commons STL
+models = "python pipeline/wikidata3d.py"
 # re-fetch even if a cached download exists
 refetch = "python pipeline/fetch.py --force"
 

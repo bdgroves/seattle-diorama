@@ -39,7 +39,7 @@ jobs:
         run: |
           git fetch --depth 1 origin scene-data
           mkdir -p web/public/data
-          for f in $(git ls-tree --name-only origin/scene-data); do git show origin/scene-data:$f > web/public/data/$f; done
+          git archive origin/scene-data | tar -x -C web/public/data
       - uses: prefix-dev/setup-pixi@v0.11.2
         with: { locked: false, cache: false }
       - run: pixi run bundle

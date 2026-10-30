@@ -36,16 +36,22 @@ jobs:
       - name: Fetch OpenStreetMap
         run: pixi run fetch
 
+      - name: Fetch terrain places (elevation + OSM)
+        run: pixi run sierra-fetch
+
+      - name: Real 3D models from Wikidata / Commons
+        run: pixi run models 2>&1 | tee models.log
+
       - name: Build scene
         run: pixi run build 2>&1 | tee build.log
 
-      - name: Sierra terrain (Yosemite, Tuolumne, Mono)
-        run: pixi run sierra 2>&1 | tee -a build.log
+      - name: Build terrain places (Yosemite, Tuolumne, Mono, Amalfi)
+        run: pixi run sierra-build 2>&1 | tee -a build.log
 
       - name: Keep raw OSM + build log on the debug-data branch
         if: always()
         run: |
-          mkdir -p /tmp/dbg && cp data/raw/osm.json data/raw/*_osm.json data/raw/*_dem.npy data/raw/*_dem.src build.log /tmp/dbg/ 2>/dev/null || true
+          mkdir -p /tmp/dbg && cp data/raw/osm.json data/raw/*_osm.json data/raw/*_dem.npy data/raw/*_dem.src data/raw/models.json data/raw/models-report.txt build.log models.log /tmp/dbg/ 2>/dev/null || true
           cd /tmp/dbg && [ -n "$(ls)" ] || exit 0
           git init -q -b debug-data
           git config user.name "github-actions[bot]"
@@ -58,7 +64,7 @@ jobs:
 
       - name: Publish scene.json to the scene-data branch
         run: |
-          mkdir -p /tmp/scene && cp web/public/data/*.json web/public/data/*.bin /tmp/scene/
+          mkdir -p /tmp/scene && cp web/public/data/*.json web/public/data/*.bin /tmp/scene/ && cp -r web/public/data/models /tmp/scene/ 2>/dev/null || true
           cd /tmp/scene
           git init -q -b scene-data
           git config user.name "github-actions[bot]"

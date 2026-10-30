@@ -7,3 +7,4 @@ __pycache__/
 film/
 web/public/data/*.json
 web/public/data/*.bin
+web/public/data/models/
