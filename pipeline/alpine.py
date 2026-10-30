@@ -39,6 +39,7 @@ def extras(place, els, g, zat, hat, dem, cls, slope, clip, rnd, vex):
         return out
 
     lifts, rails, pistes = [], {}, []
+    tracks = {}                                      # whole lines, tunnels included, for the trains
     for el in els:
         if el.get("type") != "way":
             continue
@@ -58,15 +59,19 @@ def extras(place, els, g, zat, hat, dem, cls, slope, clip, rnd, vex):
                           "occ": t.get("aerialway:occupancy", "")})
             continue
         r = t.get("railway")
-        if r in RAIL and t.get("tunnel") not in ("yes", "building_passage") and t.get("service") not in ("yard", "siding", "spur"):
+        if r in RAIL and t.get("service") not in ("yard", "siding", "spur"):
             pts = coords(el)
             if len(pts) >= 2:
-                key = t.get("name") or t.get("operator") or r
-                if "gornergrat" in (t.get("name", "") + t.get("operator", "")).lower():
+                who = (t.get("name", "") + " " + t.get("operator", "") + " " + t.get("network", "")).lower()
+                if "gornergrat" in who or "ggb" in who or (r == "narrow_gauge" and "matterhorn" not in who and "mgb" not in who):
                     key = "Gornergratbahn"
-                elif "matterhorn" in (t.get("operator", "") + t.get("name", "")).lower() or r == "rail":
+                elif "matterhorn" in who or "mgb" in who or r == "rail":
                     key = "Matterhorn Gotthard Bahn"
-                rails.setdefault((key, r), []).append(LineString(pts))
+                else:
+                    key = t.get("name") or r
+                tracks.setdefault(key, []).append(LineString(pts))
+                if t.get("tunnel") in (None, "no"):
+                    rails.setdefault((key, r), []).append(LineString(pts))
             continue
         if t.get("piste:type") == "downhill" and t.get("area") != "yes":
             pts = coords(el)
@@ -94,6 +99,48 @@ def extras(place, els, g, zat, hat, dem, cls, slope, clip, rnd, vex):
                     continue
                 rails_out.append({"n": name, "k": kind, "p": drape(seg, 10, 1.0 * vex)})
     rails_out.sort(key=lambda r: -len(r["p"]))
+    def chain(lns):
+        """Join pieces end to end (junctions and sidings break linemerge up)."""
+        pieces = sorted(_lines(linemerge(lns)), key=lambda l: -l.length)
+        if not pieces:
+            return None
+        line = list(pieces[0].coords)
+        rest = pieces[1:]
+        grew = True
+        while grew and rest:
+            grew = False
+            best = None
+            for k, pc in enumerate(rest):
+                c = list(pc.coords)
+                for end in (0, 1):
+                    for pend in (0, 1):
+                        a = line[-1] if end else line[0]
+                        b = c[-1] if pend else c[0]
+                        d = math.hypot(a[0] - b[0], a[1] - b[1])
+                        if d < 80 and (best is None or d < best[0] or (d == best[0] and pc.length > rest[best[1]].length)):
+                            best = (d, k, end, pend)
+            if best:
+                d, k, end, pend = best
+                c = list(rest.pop(k).coords)
+                if end:
+                    line += (c if pend == 0 else c[::-1])
+                else:
+                    line = (c[::-1] if pend == 0 else c) + line
+                grew = True
+        return LineString(line)
+
+    lines_out = []
+    for name, lns in tracks.items():
+        if "funicular" in name.lower():
+            continue
+        whole = chain(lns)
+        if whole is None:
+            continue
+        seg = whole.intersection(clip)
+        seg = max(_lines(seg), key=lambda l: l.length, default=None)
+        if seg is not None and seg.length > 800:
+            print(f"  train line {name}: {seg.length / 1000:.1f} km")
+            lines_out.append({"n": name, "p": drape(seg, 10, 1.0 * vex)})
 
     # ---- cows: herds on the summer pastures
     ok = ((cls == MEADOW) | (cls == ALPINE)) & (dem > 1750) & (dem < 2550) & (slope < 24)
@@ -127,7 +174,7 @@ def extras(place, els, g, zat, hat, dem, cls, slope, clip, rnd, vex):
                     cows += [round(x, 1), round(y, 1), round(zat(x, y), 1), round(rnd.uniform(0, 6.28), 2), breed]
                     break
     print(f"  lifts: {len(lifts)}, railways: {len(rails_out)}, pistes: {len(pistes)}, cows: {len(cows) // 5} in {len(centers)} herds")
-    return {"lifts": lifts, "rails": rails_out, "pistes": pistes, "cows": cows}
+    return {"lifts": lifts, "rails": rails_out, "trainlines": lines_out, "pistes": pistes, "cows": cows}
 
 
 def chalets(bld_out):

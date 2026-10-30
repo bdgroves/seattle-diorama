@@ -188,7 +188,7 @@ ZERMATT = {
     # Zermatt village in the north to Klein Matterhorn and the Italian border
     "bbox": (45.918, 7.622, 46.040, 7.880),
     "cell": 18,
-    "vexag": 1.0,
+    "vexag": 1.25,
     "dem": "swissalti3d",                  # swisstopo 2 m elevation; Terrarium fills Italy
     "tile_zoom": 13,
     "veg": "alps",

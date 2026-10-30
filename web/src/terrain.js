@@ -785,8 +785,14 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     if (force || lastLine === null || Math.abs(line - lastLine) > 15) { terr.paint(season, line); lastLine = line; }
   }
   let extraRef = null;
+  const waterBase = waterMat.color.clone(), riverBase = riverMat.color.clone();
   function applySeason() {
     repaint(true);
+    // mountain lakes and streams freeze over in a ski-season winter
+    const frozen = cfg.frozenWinter && season === 'autumn';
+    waterMat.color.copy(frozen ? new THREE.Color('#e4eaef') : waterBase);
+    riverMat.color.copy(frozen ? new THREE.Color('#dfe6ec') : riverBase);
+    waterMat.roughness = frozen ? 0.7 : 0.22;
     extraRef?.setSeason?.(season);
     fleet?.setSummer(season === 'spring');
     if (brollies) brollies.visible = season === 'spring';

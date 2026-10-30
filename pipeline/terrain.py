@@ -635,6 +635,8 @@ def build(place):
         dev = cls == DEVELOPED
         cls[dev & ~core] = GROVE
         print(f"  town cores: {core[dev].mean() * 100:.0f}% of residential land")
+    if place["veg"] == "alps":                        # ice doesn't hold on the steepest faces
+        cls[(cls == SNOW) & (slope > place.get("ice_slope", 45))] = ROCK
     cls[water_mask] = WATER
     cls[sea_mask] = WATER
     # the dry lake margins around Mono read as pale flats

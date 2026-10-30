@@ -11,6 +11,7 @@ const ZERMATT = {
   contour: 100,
   season: 'spring',                       // 'spring' here is high summer
   seasonLabel: 'Summer',
+  frozenWinter: true,
   snowSpring: 3350, snowAutumn: 1150,     // summer: only the high snowfields; winter: everything
   springToast: 'Summer: cows on the pastures, paragliders over the village, skiing only up on the glacier',
   autumnToast: 'Ski season: snow to the valley floor and every piste open',
@@ -20,8 +21,8 @@ const ZERMATT = {
   soften: 1,
   roadScale: 1.0, carScale: 2.0, roadColor: '#cfc8bb',
   palette: {
-    spring: { 0: '#2c4a2b', 1: '#8c877f', 2: '#7fa34b', 4: '#bdb5a8', 5: '#7d8a5a', 8: '#98a06e' },
-    autumn: { 0: '#2c4a2b', 1: '#8c877f', 2: '#d9dde2', 4: '#c9c3b8', 5: '#d9dde2', 8: '#e3e6ea' },
+    spring: { 0: '#2c4a2b', 1: '#9b9a97', 2: '#7fa34b', 4: '#bdb5a8', 5: '#7d8a5a', 8: '#a3a874' },
+    autumn: { 0: '#2c4a2b', 1: '#9b9a97', 2: '#d9dde2', 4: '#c9c3b8', 5: '#d9dde2', 8: '#e3e6ea' },
   },
   // larches and arolla pines: green in summer, bare in winter
   decid: {
@@ -35,7 +36,9 @@ const ZERMATT = {
     peaks: [[0.1, 0.06, 0.1, 1.4], [5.9, 0.07, 0.09, 1.4], [4.8, 0.08, 0.085, 1.3], [0.55, 0.06, 0.08, 1.3]],
     snowy: 1, stars: 2, milky: 1,
   },
-  critterScale: 3,
+  critterScale: 4,
+  rideRx: /matterhorn express 1|zermatt - furi/i,
+  rideLabel: 'Ride the gondola from Zermatt',
   paraglide: [
     { from: [46.0198, 7.8027], to: [46.0215, 7.7495] },   // off the Rothorn into the village
     { from: [45.9839, 7.7844], to: [46.0180, 7.7470] },   // off Gornergrat
@@ -48,7 +51,7 @@ const ZERMATT = {
       + `${Math.round(i.chalets || 0).toLocaleString()} chalets · ${Math.round(nTrees).toLocaleString()} larches and pines · ${data.meta.attribution.replace('swisstopo swissALTI3D', '© swisstopo swissALTI3D')}`;
   },
   views: [
-    { id: 'overview', label: 'Overview', lat: 45.985, lon: 7.735, az: 2.45, polar: 0.92, zoom: 1.0 },
+    { id: 'overview', label: 'Overview', lat: 45.985, lon: 7.735, az: 2.45, polar: 1.0, zoom: 1.05 },
     { id: 'matterhorn', label: 'The Matterhorn', lat: 45.9775, lon: 7.6600, az: 2.35, polar: 1.15, zoom: 4.2 },
     { id: 'zermatt', label: 'Zermatt village', lat: 46.0200, lon: 7.7480, az: 2.6, polar: 1.05, zoom: 12 },
     { id: 'gornergrat', label: 'Gornergrat & Monte Rosa', lat: 45.955, lon: 7.820, az: 3.75, polar: 1.12, zoom: 3.0 },

@@ -67,7 +67,7 @@ function chaletMeshes(flat, uniforms) {
   const roof = new THREE.ExtrudeGeometry(roofShape, { depth: 1.14, bevelEnabled: false }).translate(0, 0, -0.57).rotateY(Math.PI / 2).translate(0, 1.0, 0);
   const stoneMat = new THREE.MeshStandardMaterial({ color: '#ece6da', roughness: 0.9 });
   const woodMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.8 });
-  const roofMat = new THREE.MeshStandardMaterial({ color: '#5f5a55', roughness: 0.85 });
+  const roofMat = new THREE.MeshStandardMaterial({ color: '#76787c', roughness: 0.85 });
   woodMat.onBeforeCompile = (sh) => {
     sh.uniforms.uNight = uniforms.uNight;
     sh.vertexShader = sh.vertexShader
@@ -113,7 +113,7 @@ function chaletMeshes(flat, uniforms) {
     meshes[2].setMatrixAt(i, m4);
     meshes[1].setColorAt(i, c.set(WOOD[Math.floor(seed * 997) % WOOD.length]));
   }
-  return { group, setWinter(on) { roofMat.color.set(on ? '#f4f6f8' : '#5f5a55'); } };
+  return { group, setWinter(on) { roofMat.color.set(on ? '#f4f6f8' : '#76787c'); } };
 }
 
 // ------------------------------------------------------------------ lifts
@@ -126,7 +126,7 @@ const LIFT = {
   platter: { pylon: 7, cabin: null }, rope_tow: { pylon: 3, cabin: null },
 };
 
-function liftSystem(lifts, uniforms, scale) {
+function liftSystem(lifts, uniforms, scale, rideRx) {
   const group = new THREE.Group();
   const cableVerts = [];
   const pylons = [], stations = [];
@@ -216,7 +216,7 @@ function liftSystem(lifts, uniforms, scale) {
   const tmp = {};
   const lead = { pos: new THREE.Vector3() };
   // ride along on the longest gondola or tram
-  const ride = runs.slice().sort((a, b) => b.up.len - a.up.len)[0];
+  const ride = runs.find((r) => rideRx && rideRx.test(r.name)) || runs.slice().sort((a, b) => b.up.len - a.up.len)[0];
   function update(t) {
     for (const k of Object.keys(meshes)) {
       carriers[k].forEach((c, i) => {
@@ -248,7 +248,7 @@ function liftSystem(lifts, uniforms, scale) {
 }
 
 // ------------------------------------------------------------------ trains
-function trainSystem(rails, scale) {
+function trainSystem(rails, scale, trainlines) {
   const group = new THREE.Group();
   if (!rails?.length) return { group, update() {}, leads: {} };
   const bed = new THREE.Mesh(ribbonGeo(rails.map((r) => r.p.map((v, i) => (i % 3 === 2 ? v + 0.4 : v))), 4.5),
@@ -258,7 +258,7 @@ function trainSystem(rails, scale) {
   const carG = BGU.mergeGeometries([B(15, 2.9, 2.7, 0, 1.75, 0, '#c8202a'), B(15.05, 0.9, 2.75, 0, 2.2, 0, '#1f2328'), B(14, 0.35, 2.3, 0, 3.35, 0, '#e9e6df'), B(13, 0.5, 2.2, 0, 0.25, 0, '#2b2b2b')]);
   // the longest piece of each line carries the trains
   const lines = {};
-  for (const r of rails) if (!lines[r.n] || lines[r.n].p.length < r.p.length) lines[r.n] = r;
+  for (const r of trainlines?.length ? trainlines : rails) if (!lines[r.n] || lines[r.n].p.length < r.p.length) lines[r.n] = r;
   const trains = [];
   Object.values(lines).forEach((r, li) => {
     const path = new Path3(r.p);
@@ -309,20 +309,20 @@ function pisteSystem(pistes, scale) {
   const snowMat = new THREE.MeshStandardMaterial({ color: '#fbfcfd', roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const band = (list) => new THREE.Mesh(ribbonGeo(list.map((p) => p.p), 26), snowMat);
   const allBand = band(pistes || []);
-  const glacierList = (pistes || []).filter((p) => p.e > 2900);
+  const glacierList = (pistes || []).filter((p) => p.e > 3150);
   const glacierBand = band(glacierList);
   allBand.receiveShadow = glacierBand.receiveShadow = true;
   group.add(allBand, glacierBand);
   for (const [col, list] of Object.entries(byColor)) {
     const mat = new THREE.MeshBasicMaterial({ color: col, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
-    const all = new THREE.Mesh(ribbonGeo(list.map((p) => p.p.map((v, i) => (i % 3 === 2 ? v + 0.3 : v))), 3.2), mat);
-    const gl = new THREE.Mesh(ribbonGeo(list.filter((p) => p.e > 2900).map((p) => p.p.map((v, i) => (i % 3 === 2 ? v + 0.3 : v))), 3.2), mat);
+    const all = new THREE.Mesh(ribbonGeo(list.map((p) => p.p.map((v, i) => (i % 3 === 2 ? v + 0.3 : v))), 5), mat);
+    const gl = new THREE.Mesh(ribbonGeo(list.filter((p) => p.e > 3150).map((p) => p.p.map((v, i) => (i % 3 === 2 ? v + 0.3 : v))), 5), mat);
     group.add(all, gl);
     lineMeshes.push({ all, gl });
   }
   void groomed;
   // skiers
-  const paths = (pistes || []).map((p) => ({ path: new Path3(p.p), glacier: p.e > 2900 })).filter((p) => p.path.len > 200);
+  const paths = (pistes || []).map((p) => ({ path: new Path3(p.p), glacier: p.e > 3150 })).filter((p) => p.path.len > 200);
   const N = Math.min(420, paths.length * 6);
   const rnd = mulberry32(1865);              // first ascent of the Matterhorn
   const skierG = BGU.mergeGeometries([B(0.5, 1.1, 0.35, 0, 0.95, 0, '#ffffff'), B(0.3, 0.3, 0.3, 0, 1.65, 0, '#f2d4b5'), B(1.7, 0.06, 0.12, 0, 0.05, 0.15, '#222222'), B(1.7, 0.06, 0.12, 0, 0.05, -0.15, '#222222')]);
@@ -519,9 +519,9 @@ export async function buildAlps({ scene, uniforms, data, heightAt, ll, cfg }) {
   const S = cfg.critterScale || 3;
   const chalets = chaletMeshes(data.chalets, uniforms);
   if (chalets) group.add(chalets.group);
-  const lifts = liftSystem(data.lifts || [], uniforms, cfg.liftScale || 2.2);
+  const lifts = liftSystem(data.lifts || [], uniforms, cfg.liftScale || 2.2, cfg.rideRx);
   group.add(lifts.group);
-  const trains = trainSystem(data.rails, cfg.trainScale || 1.6);
+  const trains = trainSystem(data.rails, cfg.trainScale || 1.6, data.trainlines);
   group.add(trains.group);
   const pistes = pisteSystem(data.pistes, S);
   group.add(pistes.group);
@@ -548,7 +548,7 @@ export async function buildAlps({ scene, uniforms, data, heightAt, ll, cfg }) {
   const follows = [];
   const gg = Object.keys(trains.leads).find((k) => /gornergrat/i.test(k));
   if (gg) follows.push({ label: 'Ride the Gornergrat train', dot: '#c8202a', obj: trains.leads[gg], zoom: 14 });
-  if (lifts.rideName !== undefined) follows.push({ label: `Ride the ${lifts.rideName || 'gondola'}`, dot: '#c4232c', obj: lifts.lead, zoom: 12 });
+  if (lifts.rideName !== undefined) follows.push({ label: cfg.rideLabel || `Ride the ${lifts.rideName || 'gondola'}`, dot: '#c4232c', obj: lifts.lead, zoom: 12 });
   if (spots.length) follows.push({ label: 'Fly with a paraglider', dot: '#f2c230', obj: gliders.lead, zoom: 10 });
 
   return {
