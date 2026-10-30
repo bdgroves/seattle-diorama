@@ -29,6 +29,10 @@ city = { depends-on = ["fetch", "build"] }
 sierra = "python pipeline/terrain.py all"
 sierra-fetch = "python pipeline/terrain.py fetch"
 sierra-build = "python pipeline/terrain.py build"
+# The Dakar Rally 2027: Algarve to Marrakech, Terrarium elevation + the route
+dakar = "python pipeline/dakar.py all"
+dakar-fetch = "python pipeline/dakar.py fetch"
+dakar-build = "python pipeline/dakar.py build"
 # Real 3D models of landmarks: OSM wikidata tags -> Wikidata P4896 -> Commons STL
 models = "python pipeline/wikidata3d.py"
 # re-fetch even if a cached download exists

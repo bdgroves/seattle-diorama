@@ -39,6 +39,9 @@ jobs:
       - name: Fetch terrain places (elevation + OSM)
         run: pixi run sierra-fetch
 
+      - name: Fetch the Dakar Rally elevation
+        run: pixi run dakar-fetch
+
       - name: Real 3D models from Wikidata / Commons
         run: pixi run models 2>&1 | tee models.log
 
@@ -47,6 +50,9 @@ jobs:
 
       - name: Build terrain places (Yosemite, Tuolumne, Mono, Amalfi)
         run: pixi run sierra-build 2>&1 | tee -a build.log
+
+      - name: Build the Dakar Rally 2027
+        run: pixi run dakar-build 2>&1 | tee -a build.log
 
       - name: Keep raw OSM + build log on the debug-data branch
         if: always()
