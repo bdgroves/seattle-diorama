@@ -38,6 +38,7 @@ export class Sky {
       uHasHero: { value: cfg.hero ? 1 : 0 },
       uStars: { value: cfg.stars ?? 1 },
       uMilky: { value: cfg.milky ?? 0 },
+      uSnowy: { value: cfg.snowy ?? 1 },
     };
     const mat = new THREE.ShaderMaterial({
       uniforms: this.uniforms,
@@ -48,7 +49,7 @@ export class Sky {
         void main() { vUv = uv; gl_Position = vec4(position.xy, 1.0, 1.0); }`,
       fragmentShader: /* glsl */ `
         uniform vec3 uTop, uBot, uSun;
-        uniform float uBearing, uSpan, uHorizon, uNight, uAspect, uTime, uRain, uScale, uHasHero, uStars, uMilky;
+        uniform float uBearing, uSpan, uHorizon, uNight, uAspect, uTime, uRain, uScale, uHasHero, uStars, uMilky, uSnowy;
         uniform vec4 uRanges[${MAXR}];
         uniform vec4 uPeaks[${MAXP}];
         uniform vec4 uHero;
@@ -97,13 +98,13 @@ export class Sky {
           vec3 col = sky;
           if (y < far) {
             float snowLine = far * 0.62;
-            vec3 m = mix(rock, snow, smoothstep(snowLine - 0.004, snowLine + 0.004, y) * 0.8);
+            vec3 m = mix(rock, snow, smoothstep(snowLine - 0.004, snowLine + 0.004, y) * 0.8 * uSnowy);
             col = mix(col, mix(m, haze, 0.55), vis);
           }
           if (y < hero) {
             float snowLine = hero * 0.28;
             float streak = 0.5 + 0.5 * sin(b * 260.0 + y * 40.0);
-            float s = smoothstep(snowLine - 0.006, snowLine + 0.006, y + 0.01 * streak);
+            float s = smoothstep(snowLine - 0.006, snowLine + 0.006, y + 0.01 * streak) * uSnowy;
             vec3 m = mix(rock * 0.95, snow, s);
             m *= 1.0 - 0.18 * smoothstep(-0.05, 0.05, adiff(b, uHero.x));
             m = mix(m, m * 0.82, smoothstep(0.6, 1.0, sin(b * 140.0 + y * 25.0)) * s * 0.6);

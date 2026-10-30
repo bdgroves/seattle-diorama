@@ -118,6 +118,71 @@ export const MONO = {
   ],
 };
 
+// The Amalfi Coast: Capri and the Sorrento peninsula west, Positano to Ravello
+// east. Camera az 0 sits out at sea looking north at the cliffs.
+export const AMALFI = {
+  id: 'amalfi',
+  contour: 50,
+  snowAutumn: 9999, snowSpring: 9999,
+  season: 'spring',                   // 'spring' here means high summer
+  seasonLabel: 'High summer',
+  autumnToast: 'Late October: quiet beaches, chestnuts turning gold on the Lattari',
+  springToast: 'High summer: umbrellas out, the bays full of boats',
+  weather: { mode: 'rain', label: 'Rain', toast: 'A Mediterranean squall rolls in off the sea' },
+  terraces: true,
+  roadScale: 1.6, carScale: 2.6,
+  drive: 'Drive the Amalfi Coast road', driveZoom: 9, driveSpeed: 16,
+  driveStart: { lat: 40.6281, lon: 14.4850 },          // Positano, heading east
+  ferry: 'Ferry to Capri', ferryZoom: 5,
+  ferryTo: { lat: 40.5585, lon: 14.2420 },             // Marina Grande
+  buildingColors: ['#f2e3c6', '#f4d1a6', '#efc39b', '#f6efe2', '#e8b6a0', '#f1d58a', '#dcc7b0', '#f7f3ea'],
+  palette: {
+    autumn: { 0: '#46663a', 1: '#d6d0c2', 2: '#a9a467', 4: '#e4d6c2', 5: '#6f8550', 6: '#d2c8b4', 10: '#678c43' },
+    spring: { 0: '#3f6a3a', 1: '#d9d4c7', 2: '#9fae62', 4: '#e6d8c4', 5: '#7a8c50', 6: '#e3d7bd', 10: '#6e9a45' },
+  },
+  decid: {
+    autumn: [['#c99a3a', '#b07a2c', '#a38a3a', '#7f8a3a', '#c4862f'], ['#c99a3a', '#a38a3a']],   // chestnut, oak
+    spring: [['#4f7f35', '#5a8a3a', '#46752f', '#62913f'], ['#5a8a3a', '#4f7f35']],
+  },
+  sky: {
+    // Vesuvius over the Bay of Naples to the north, Ischia's Epomeo off west,
+    // the Monti Picentini inland to the north-east; open sea to the south
+    ranges: [[0.35, 2.0, 0.011, 0.016], [5.55, 6.15, 0.004, 0.006]],
+    peaks: [[4.98, 0.06, 0.03, 1.3], [5.12, 0.03, 0.012, 1.2], [1.05, 0.12, 0.028, 1.3]],
+    hero: [6.21, 0.2, 0.085, 1.15],
+    snowy: 0, stars: 2, milky: 1,
+  },
+  stats: ({ data, nTrees, boats }) => {
+    let km = 0;
+    const d = data.drive || [];
+    for (let i = 3; i < d.length; i += 3) km += Math.hypot(d[i] - d[i - 3], d[i + 1] - d[i - 2]);
+    return `${Math.round(km / 1000)} km of coast road · ${boats} boats · ${Math.round(nTrees).toLocaleString()} trees · ${data.meta.attribution}`;
+  },
+  views: [
+    { id: 'overview', label: 'Overview', lat: 40.600, lon: 14.420, az: 0.1, polar: 0.9, zoom: 1.0 },
+    { id: 'capri', label: 'Capri & the Faraglioni', lat: 40.548, lon: 14.240, az: -0.35, polar: 1.1, zoom: 3.4 },
+    { id: 'positano', label: 'Positano', lat: 40.6281, lon: 14.4850, az: 0.05, polar: 1.15, zoom: 7 },
+    { id: 'gods', label: 'Path of the Gods', lat: 40.631, lon: 14.515, az: 0.35, polar: 1.05, zoom: 5 },
+    { id: 'furore', label: 'Fiordo di Furore', lat: 40.6205, lon: 14.5503, az: 0.1, polar: 1.15, zoom: 10 },
+    { id: 'amalfi', label: 'Amalfi & Atrani', lat: 40.6345, lon: 14.6040, az: -0.15, polar: 1.12, zoom: 8 },
+    { id: 'ravello', label: 'Ravello & Villa Cimbrone', lat: 40.6470, lon: 14.6118, az: 0.55, polar: 1.12, zoom: 9 },
+    { id: 'galli', label: 'Li Galli', lat: 40.581, lon: 14.430, az: 0.2, polar: 1.05, zoom: 7 },
+  ],
+  film: ({ V, car, ferry }) => [
+    { t: 0, target: V.overview, az: 0.15, polar: 0.88, zoom: 0.95, tod: 0.05 },
+    { t: 6, target: V.capri, az: -0.4, polar: 1.1, zoom: 3.4, tod: 0.1 },
+    { t: 12, target: ferry ? () => ferry.pos : V.capri, az: -0.1, polar: 1.05, zoom: 5, tod: 0.16 },
+    { t: 18, target: V.positano, az: 0.05, polar: 1.15, zoom: 6.5, tod: 0.22 },
+    { t: 24, target: car ? () => car.pos : V.positano, az: 0.3, polar: 1.08, zoom: 9, tod: 0.28 },
+    { t: 30, target: V.furore, az: 0.15, polar: 1.12, zoom: 8, tod: 0.36 },
+    { t: 36, target: V.amalfi, az: -0.2, polar: 1.12, zoom: 7, tod: 0.46 },
+    { t: 42, target: V.ravello, az: 0.6, polar: 1.12, zoom: 8, tod: 0.58 },
+    { t: 48, target: V.gods, az: -0.25, polar: 1.0, zoom: 3, tod: 0.7 },
+    { t: 54, target: V.amalfi, az: 0.0, polar: 1.05, zoom: 5, tod: 0.95 },
+    { t: 60, target: V.overview, az: 0.2, polar: 0.92, zoom: 1.05, tod: 1.0 },
+  ],
+};
+
 export function sierraLoader(cfg) {
   return (ctx) => buildTerrainPlace({ ...ctx, cfg });
 }

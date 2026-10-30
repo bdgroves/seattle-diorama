@@ -28,4 +28,11 @@ export const PLACES = [
     lat: 37.99, lon: -119.04, where: 'at Mono Lake',
     load: () => import('./sierra.js').then((m) => m.sierraLoader(m.MONO)),
   },
+  {
+    id: 'amalfi', name: 'Amalfi Coast', tz: 'Europe/Rome',
+    eyebrow: 'Campania, Italy', title: 'The Amalfi <em>Coast</em>',
+    blurb: 'Capri, Positano, Ravello and the coast road, cliffs dropping into a turquoise sea.',
+    lat: 40.62, lon: 14.45, where: 'on the Amalfi Coast',
+    load: () => import('./sierra.js').then((m) => m.sierraLoader(m.AMALFI)),
+  },
 ];

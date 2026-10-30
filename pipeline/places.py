@@ -109,4 +109,74 @@ MONO = {
     "gulls": (38.0255, -119.0505),
 }
 
-PLACES = {p["id"]: p for p in (YOSEMITE, TUOLUMNE, MONO)}
+AMALFI = {
+    "id": "amalfi",
+    "name": "The Amalfi Coast",
+    # Capri and Punta Campanella in the west to Ravello, Minori and Maiori in the east
+    "bbox": (40.525, 14.180, 40.700, 14.660),
+    "cell": 35,
+    "vexag": 1.4,
+    "dem": "terrarium",
+    "tile_zoom": 13,
+    "sea": True,
+    "sea_floor": -140,
+    "veg": "med",
+    "maquis_top": 420,
+    "treeline": 1300,
+    "tree_cap": 60000,
+    "tree_tall": 22,
+    "min_building": 20,
+    # the SS163 Amalfitana, Positano to Vietri; SS145 over to Sorrento
+    "drive_rx": r"\bSS ?163\b|amalfitana",
+    "labels": [
+        ("Positano", r"^positano$", 40.6281, 14.4850, 80, "town"),
+        ("Praiano", r"^praiano$", 40.6122, 14.5328, 70, "town"),
+        ("Amalfi", r"^amalfi$", 40.6340, 14.6027, 80, "town"),
+        ("Atrani", r"^atrani$", 40.6360, 14.6080, 50, "town"),
+        ("Ravello", r"^ravello$", 40.6492, 14.6116, 80, "town"),
+        ("Minori", r"^minori$", 40.6500, 14.6270, 50, "town"),
+        ("Capri", r"^capri$", 40.5507, 14.2426, 80, "town"),
+        ("Anacapri", r"^anacapri$", 40.5530, 14.2150, 70, "town"),
+        ("Sorrento", r"^sorrento$", 40.6263, 14.3757, 80, "town"),
+        ("Furore", r"^furore$", 40.6200, 14.5505, 60, "town"),
+        ("Conca dei Marini", r"^conca dei marini$", 40.6168, 14.5717, 50, ""),
+        ("Nocelle", r"^nocelle$", 40.6300, 14.5050, 50, ""),
+        ("Monte Solaro", r"monte solaro", 40.5458, 14.2205, 60, "peak"),
+        ("Monte Sant'Angelo a Tre Pizzi", r"sant.angelo a tre pizzi|tre pizzi", 40.6500, 14.4990, 70, "peak"),
+        ("I Faraglioni", r"faraglion", 40.5420, 14.2620, 60, ""),
+        ("Grotta Azzurra", r"grotta azzurra", 40.5605, 14.2055, 50, ""),
+        ("Li Galli", r"^li galli$|isole li galli", 40.5810, 14.4300, 60, ""),
+        ("Fiordo di Furore", r"fiordo di furore", 40.6205, 14.5503, 45, ""),
+        ("Grotta dello Smeraldo", r"grotta (dello|di) smeraldo", 40.6150, 14.5640, 45, ""),
+        ("Villa Cimbrone", r"villa cimbrone", 40.6440, 14.6122, 45, ""),
+        ("Villa Rufolo", r"villa rufolo", 40.6488, 14.6123, 45, ""),
+        ("Sentiero degli Dei", r"sentiero degli dei|path of the gods", 40.6320, 14.5200, 45, ""),
+        ("Punta Campanella", r"punta campanella", 40.5690, 14.3270, 50, ""),
+        ("Marina del Cantone", r"marina del cantone", 40.5850, 14.3520, 45, ""),
+        ("Spiaggia di Arienzo", r"arienzo", 40.6215, 14.4970, 40, ""),
+        ("Marina di Praia", r"marina di praia", 40.6115, 14.5385, 40, ""),
+        ("Villa Jovis", r"villa jovis", 40.5555, 14.2650, 50, ""),
+        ("Duomo di Amalfi", r"duomo di amalfi|cattedrale di sant.andrea", 40.6344, 14.6033, 45, ""),
+    ],
+    "falls": [],
+    "walls": [],
+    # ferries and boats where OSM doesn't map a route (lat, lon waypoints, all at sea)
+    "boat_routes": [
+        [(40.6255, 14.4850), (40.6150, 14.5150), (40.6120, 14.5500), (40.6260, 14.5900), (40.6315, 14.6030)],   # Positano - Amalfi
+        [(40.6255, 14.4850), (40.6000, 14.4300), (40.5700, 14.3500), (40.5590, 14.2800), (40.5585, 14.2420)],   # Positano - Capri
+        [(40.6315, 14.6030), (40.6420, 14.6260), (40.6440, 14.6420)],                                           # Amalfi - Minori - Maiori
+    ],
+    # yachts at anchor off the beaches and the stacks (lat, lon, radius m, count)
+    "anchorages": [
+        (40.6240, 14.4860, 450, 26),    # Positano
+        (40.5440, 14.2560, 500, 30),    # Faraglioni and Marina Piccola
+        (40.5600, 14.2400, 400, 18),    # Marina Grande
+        (40.5830, 14.4300, 600, 18),    # Li Galli
+        (40.5830, 14.3530, 450, 16),    # Marina del Cantone
+        (40.6315, 14.6025, 400, 14),    # Amalfi
+        (40.6190, 14.4990, 300, 10),    # Arienzo and Laurito
+        (40.6110, 14.5390, 300, 8),     # Marina di Praia
+    ],
+}
+
+PLACES = {p["id"]: p for p in (YOSEMITE, TUOLUMNE, MONO, AMALFI)}

@@ -6,18 +6,19 @@ import * as BGU from 'three/addons/utils/BufferGeometryUtils.js';
 import { buildBuildings, flatLayer } from './city.js';
 import { CAR_COLORS, carGeometry, lightsGeometry, mulberry32 } from './life.js';
 import { animateWater } from './bay.js';
+import { seaSurface, seaWalls, boats, umbrellas } from './coast.js';
 
 // landcover classes (match pipeline/terrain.py)
-const FOREST = 0, ROCK = 1, MEADOW = 2, WATER = 3, DEVELOPED = 4, SAGE = 5, SAND = 6, SNOW = 7, ALPINE = 8, LAVA = 9;
+const FOREST = 0, ROCK = 1, MEADOW = 2, WATER = 3, DEVELOPED = 4, SAGE = 5, SAND = 6, SNOW = 7, ALPINE = 8, LAVA = 9, GROVE = 10;
 
 const PALETTES = {
   autumn: {
     [FOREST]: '#3c5b39', [ROCK]: '#bfc0ba', [MEADOW]: '#cbb47c', [WATER]: '#4d8db0', [DEVELOPED]: '#c9c1b3',
-    [SAGE]: '#939c80', [SAND]: '#ece8dc', [SNOW]: '#f4f6f8', [ALPINE]: '#a9a594', [LAVA]: '#4f4a46',
+    [SAGE]: '#939c80', [SAND]: '#ece8dc', [SNOW]: '#f4f6f8', [ALPINE]: '#a9a594', [LAVA]: '#4f4a46', [GROVE]: '#6b8f45',
   },
   spring: {
     [FOREST]: '#3a6539', [ROCK]: '#bfc0ba', [MEADOW]: '#88bb5b', [WATER]: '#4d8db0', [DEVELOPED]: '#c9c1b3',
-    [SAGE]: '#94a982', [SAND]: '#ece8dc', [SNOW]: '#f4f6f8', [ALPINE]: '#9ead88', [LAVA]: '#4f4a46',
+    [SAGE]: '#94a982', [SAND]: '#ece8dc', [SNOW]: '#f4f6f8', [ALPINE]: '#9ead88', [LAVA]: '#4f4a46', [GROVE]: '#6e9a45',
   },
 };
 const DECID = {
@@ -25,6 +26,7 @@ const DECID = {
     ['#f2c230', '#eab52b', '#f5d14b', '#e39c27', '#f0b72d']],                    // aspen
   spring: [['#86b552', '#78a84a', '#93c060', '#6f9f45'], ['#9cc65c', '#8dbd52', '#a8cf6a']],
 };
+const SEABED = ['#e3d9b8', '#3fb5b9', '#1d6f9e', '#0f3157'].map((c) => new THREE.Color(c));
 const CONIFER = ['#2f5a3b', '#3a6646', '#2a5236', '#41704a', '#335f3f'];
 
 export async function loadTerrain(base, id) {
@@ -53,7 +55,7 @@ export function makeSampler(grid, z) {
 }
 
 // ------------------------------------------------------------------ ground
-function terrainMesh(grid, z, cls, uniforms) {
+function terrainMesh(grid, z, cls, uniforms, cfg = {}) {
   const { nx, ny, x0, y1, dx, dy } = grid;
   const pos = new Float32Array(nx * ny * 3);
   for (let j = 0; j < ny; j++) {
@@ -78,6 +80,17 @@ function terrainMesh(grid, z, cls, uniforms) {
   g.setIndex(new THREE.BufferAttribute(idx, 1));
   g.computeVertexNormals();
   g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(nx * ny * 3), 3));
+  // terraces: lemon groves and the cultivated lower slopes are stepped
+  const terr = new Float32Array(nx * ny);
+  if (cfg.terraces) {
+    const nr = g.attributes.normal.array;
+    for (let k = 0; k < nx * ny; k++) {
+      const c = cls[k], hR = pos[k * 3 + 1] / grid.vexag + grid.h0, up = nr[k * 3 + 1];
+      const slopeOk = up > 0.6 && up < 0.97;
+      if (hR > 2 && slopeOk && (c === GROVE || ((c === SAGE || c === DEVELOPED || c === MEADOW) && hR < 600))) terr[k] = c === GROVE ? 1 : 0.6;
+    }
+  }
+  g.setAttribute('aTerr', new THREE.BufferAttribute(terr, 1));
   g.computeBoundingSphere();
 
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96, metalness: 0 });
@@ -87,18 +100,19 @@ function terrainMesh(grid, z, cls, uniforms) {
     sh.uniforms.uContour = { value: grid.contour || 100 };
     sh.uniforms.uNight = uniforms.uNight;
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vWP;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      .replace('#include <common>', '#include <common>\nattribute float aTerr; varying float vTerr; varying vec3 vWP;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTerr = aTerr; vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform float uVex, uH0, uContour, uNight; varying vec3 vWP;
+        uniform float uVex, uH0, uContour, uNight; varying float vTerr; varying vec3 vWP;
         float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float cline(float v){ float w = fwidth(v); return (1.0 - min(abs(fract(v - 0.5) - 0.5) / max(w, 1e-5), 1.0)) * (1.0 - smoothstep(0.12, 0.35, w)); }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
         float hReal = vWP.y / uVex + uH0;
         float c1 = cline(hReal / uContour), c5 = cline(hReal / (uContour * 5.0));
         diffuseColor.rgb *= 1.0 - (0.10 * c1 + 0.16 * c5) * (1.0 - 0.6 * uNight);
-        diffuseColor.rgb *= 0.95 + 0.1 * h21(floor(vWP.xz / 7.0));`);
+        diffuseColor.rgb *= 0.95 + 0.1 * h21(floor(vWP.xz / 7.0));
+        if (vTerr > 0.01) { float tl = cline(hReal / 7.0); diffuseColor.rgb *= 1.0 - vTerr * (0.28 * tl - 0.04 * cline(hReal / 7.0 + 0.5)); }`);
   };
   const mesh = new THREE.Mesh(g, mat);
   mesh.receiveShadow = true;
@@ -111,7 +125,7 @@ function terrainMesh(grid, z, cls, uniforms) {
   const rnd = mulberry32(37);
   for (let i = 0; i < jitter.length; i++) jitter[i] = rnd();
   function paint(season, snowline) {
-    const P = PALETTES[season];
+    const P = { ...PALETTES[season], ...(cfg.palette?.[season] || {}) };
     const pal = Object.fromEntries(Object.entries(P).map(([k, v]) => [k, new THREE.Color(v)]));
     rockC.copy(pal[ROCK]);
     for (let k = 0; k < nx * ny; k++) {
@@ -120,7 +134,7 @@ function terrainMesh(grid, z, cls, uniforms) {
       const ny_ = nrm[k * 3 + 1], nz = nrm[k * 3 + 2];
       const hReal = pos[k * 3 + 1] / grid.vexag + grid.h0;
       // steep ground shows granite whatever grows there
-      if (c === FOREST || c === MEADOW || c === ALPINE || c === SAGE) {
+      if (c === FOREST || c === MEADOW || c === ALPINE || c === SAGE || c === GROVE) {
         tmp.lerp(rockC, THREE.MathUtils.smoothstep(0.82, 0.62, ny_) * 0.85);
       }
       if (c === FOREST) tmp.offsetHSL(0, 0, (jitter[k] - 0.5) * 0.05);
@@ -130,6 +144,14 @@ function terrainMesh(grid, z, cls, uniforms) {
         const line = snowline - 140 * Math.max(0, -nz) + (jitter[k] - 0.5) * 90;
         const s = THREE.MathUtils.smoothstep(hReal, line, line + 70) * THREE.MathUtils.smoothstep(ny_, 0.35, 0.6);
         if (s > 0) tmp.lerp(snowC, s * 0.92);
+      }
+      // the seabed: pale sand in the shallows, turquoise, then deep blue
+      if (cfg.sea && hReal < 0.5) {
+        const d = -hReal;
+        if (d < 4) tmp.copy(SEABED[0]).lerp(SEABED[1], Math.max(0, d) / 4);
+        else if (d < 25) tmp.copy(SEABED[1]).lerp(SEABED[2], (d - 4) / 21);
+        else tmp.copy(SEABED[2]).lerp(SEABED[3], Math.min(1, (d - 25) / 55));
+        tmp.lerp(rockC, THREE.MathUtils.smoothstep(0.8, 0.5, ny_) * 0.35);
       }
       col[k * 3] = tmp.r; col[k * 3 + 1] = tmp.g; col[k * 3 + 2] = tmp.b;
     }
@@ -232,10 +254,13 @@ function ribbonMesh(list, material) {
 }
 
 // ------------------------------------------------------------------ trees
-function treeMeshes(flat, season) {
+function treeMeshes(flat, season, decid = DECID) {
   const n = flat.length / 5;
-  const con = [], dec = [];
-  for (let i = 0; i < n; i++) (flat[i * 5 + 4] === 0 ? con : dec).push(i);
+  const con = [], dec = [], pine = [], lemon = [];
+  for (let i = 0; i < n; i++) {
+    const k = flat[i * 5 + 4];
+    (k === 0 ? con : k === 3 ? pine : k === 4 ? lemon : dec).push(i);
+  }
   const group = new THREE.Group();
   const rnd = mulberry32(1890);   // Yosemite National Park
   const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), p = new THREE.Vector3(), col = new THREE.Color();
@@ -266,13 +291,46 @@ function treeMeshes(flat, season) {
   blob.count = dec.length;
   function recolor(seasonName) {
     decSeeds.forEach(([kind, r], k) => {
-      const list = DECID[seasonName][Math.min(kind, 1)];
+      const list = decid[seasonName][Math.min(kind, 1)];
       blob.setColorAt(k, col.set(list[Math.floor(r * list.length)]));
     });
     if (blob.instanceColor) blob.instanceColor.needsUpdate = true;
   }
   recolor(season);
-  for (const m of [cone, blob]) { m.castShadow = true; m.receiveShadow = true; if (m.count) group.add(m); }
+  // umbrella pines: a tall bare trunk and a flat dark crown
+  const extra = [];
+  if (pine.length) {
+    const pg = BGU.mergeGeometries([
+      new THREE.CylinderGeometry(0.06, 0.09, 1, 5).translate(0, 0.5, 0),
+      new THREE.SphereGeometry(1, 8, 5).scale(0.42, 0.13, 0.42).translate(0, 1.0, 0),
+    ].map((x) => x.toNonIndexed()));
+    const pm = new THREE.InstancedMesh(pg, mat, pine.length);
+    pine.forEach((i, k) => {
+      const s = flat[i * 5 + 3], H = 30 * s * (0.85 + 0.3 * rnd());
+      q.setFromAxisAngle(yAxis, rnd() * 6.28);
+      sc.set(H, H, H);
+      p.set(flat[i * 5], flat[i * 5 + 2] - 0.5, -flat[i * 5 + 1]);
+      mtx.compose(p, q, sc);
+      pm.setMatrixAt(k, mtx);
+      pm.setColorAt(k, col.set(['#3d5a33', '#46653a', '#35502e'][Math.floor(rnd() * 3)]));
+    });
+    extra.push(pm);
+  }
+  // lemon trees in their rows, olives and maquis shrubs
+  if (lemon.length) {
+    const lm = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), mat, lemon.length);
+    lemon.forEach((i, k) => {
+      const s = flat[i * 5 + 3], r = 6 * s * (0.8 + 0.4 * rnd());
+      q.setFromAxisAngle(yAxis, rnd() * 6.28);
+      sc.set(r, r * 0.8, r);
+      p.set(flat[i * 5], flat[i * 5 + 2] + r * 0.6, -flat[i * 5 + 1]);
+      mtx.compose(p, q, sc);
+      lm.setMatrixAt(k, mtx);
+      lm.setColorAt(k, col.set(['#4f7a2e', '#5d8a34', '#466f2a', '#6b8f3c', '#7d8f55'][Math.floor(rnd() * 5)]));
+    });
+    extra.push(lm);
+  }
+  for (const m of [...extra, cone, blob]) { m.castShadow = true; m.receiveShadow = true; if (m.count) group.add(m); }
   return { group, recolor };
 }
 
@@ -297,10 +355,13 @@ class Lane3 {
   }
 }
 
-function mountainTraffic(lanesFlat, uniforms, scale) {
-  const lanes = lanesFlat.map((f) => new Lane3(f)).filter((l) => l.len > 300);
-  if (!lanes.length) return null;
+function mountainTraffic(lanesFlat, uniforms, scale, opts = {}) {
+  const all = lanesFlat.map((f) => new Lane3(f));
+  const first = opts.leadFirst ? all[0] : null;
+  const lanes = all.filter((l) => l.len > 300 && l !== first);
   lanes.sort((a, b) => b.len - a.len);
+  if (first && first.len > 300) lanes.unshift(first);
+  if (!lanes.length) return null;
   const total = lanes.reduce((s, l) => s + l.len, 0);
   const rand = mulberry32(120);
   const n = Math.min(120, Math.max(6, Math.floor(total / 900)));
@@ -308,6 +369,13 @@ function mountainTraffic(lanesFlat, uniforms, scale) {
     const lane = i === 0 ? lanes[0] : (() => { let t = rand() * total; for (const l of lanes) { if ((t -= l.len) <= 0) return l; } return lanes[0]; })();
     return { lane, s: rand() * lane.len, dir: rand() < 0.5 ? 1 : -1, v: 11 + rand() * 7, pause: 0 };
   });
+  if (opts.start) {
+    // the lead car sets off from a chosen point (Positano), driving east
+    const L = lanes[0];
+    let best = 0, bd = Infinity;
+    for (let k = 0; k < L.p.length; k++) { const d = Math.hypot(L.p[k][0] - opts.start[0], L.p[k][1] - opts.start[1]); if (d < bd) { bd = d; best = k; } }
+    Object.assign(cars[0], { s: L.cum[best], dir: 1, v: opts.leadSpeed || 16 });
+  }
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5 });
   const mesh = new THREE.InstancedMesh(carGeometry(), mat, n);
   const lightMat = new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false });
@@ -584,7 +652,7 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   };
 
   let season = cfg.season || 'autumn';
-  const terr = terrainMesh(grid, z, cls, uniforms);
+  const terr = terrainMesh(grid, z, cls, uniforms, { palette: cfg.palette, terraces: cfg.terraces, sea: grid.sea != null });
   scene.add(terr.mesh);
   const depth = maxDim * 0.03;
   scene.add(slabWalls(grid, z, depth));
@@ -608,8 +676,9 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   const roadMat = new THREE.MeshStandardMaterial({ color: '#dcd5c6', roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
   const trailMat = new THREE.MeshStandardMaterial({ color: '#8f6f47', roughness: 1, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
   const ws = Math.max(1, maxDim / 9000);
-  const rd = ribbonMesh(data.roads.filter((r) => r.k !== 'trail').map((r) => ribbon(r.p, r.w * 1.5 * ws)), roadMat);
-  const tr = ribbonMesh(data.roads.filter((r) => r.k === 'trail').map((r) => ribbon(r.p, 2.6 * ws, 14 * ws)), trailMat);
+  const rs = cfg.roadScale ?? ws;
+  const rd = ribbonMesh(data.roads.filter((r) => r.k !== 'trail').map((r) => ribbon(r.p, r.w * 1.5 * rs)), roadMat);
+  const tr = ribbonMesh(data.roads.filter((r) => r.k === 'trail').map((r) => ribbon(r.p, 2.6 * rs, 14 * rs)), trailMat);
   if (rd) scene.add(rd);
   if (tr) scene.add(tr);
 
@@ -620,7 +689,7 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     scene.add(buildBuildings(list, uniforms));
   }
 
-  const trees = treeMeshes(data.trees, season);
+  const trees = treeMeshes(data.trees, season, cfg.decid || DECID);
   scene.add(trees.group);
   const falls = waterfalls(data.falls || [], uniforms);
   scene.add(falls.group);
@@ -644,8 +713,24 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   if (tufa) scene.add(tufa);
   const gulls = gullFlock(data.gulls);
   if (gulls) scene.add(gulls.object);
-  const traffic = mountainTraffic(data.lanes || [], uniforms, Math.max(1.6, ws * 1.4));
+  const startXY = cfg.driveStart ? [(cfg.driveStart.lon - lon0) * kx, (cfg.driveStart.lat - lat0) * ky] : null;
+  const traffic = mountainTraffic(data.lanes || [], uniforms, cfg.carScale ?? Math.max(1.6, ws * 1.4),
+    { leadFirst: !!data.drive, start: startXY, leadSpeed: cfg.driveSpeed });
   if (traffic) scene.add(traffic.group);
+
+  // the sea: surface, water column on the cut edges, boats and beach umbrellas
+  let fleet = null, brollies = null;
+  if (grid.sea != null) {
+    const sea = seaSurface(grid, uniforms, wScale * 1.5);
+    scene.add(sea.mesh);
+    const walls = seaWalls(grid, z);
+    if (walls) scene.add(walls);
+    const near = cfg.ferryTo ? [(cfg.ferryTo.lon - lon0) * kx, (cfg.ferryTo.lat - lat0) * ky] : null;
+    fleet = boats({ routes: data.routes, anchored: data.anchored, sea: grid.sea, uniforms, scale: cfg.boatScale || 2.2, leadNear: near });
+    scene.add(fleet.group);
+    brollies = umbrellas(data.umbrellas, cfg.umbrellaScale || 2.2);
+    if (brollies) scene.add(brollies);
+  }
 
   // seasons + snow
   let weatherSnow = 0, lastLine = null;
@@ -656,6 +741,8 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   }
   function applySeason() {
     repaint(true);
+    fleet?.setSummer(season === 'spring');
+    if (brollies) brollies.visible = season === 'spring';
     trees.recolor(season);
     falls.setFlow((name) => (season === 'spring' ? cfg.flowSpring?.(name) ?? 1 : cfg.flowAutumn?.(name) ?? 0.3));
   }
@@ -664,7 +751,7 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   // labels
   const labels = data.labels.map((l, i) => ({
     text: l.t, sub: l.s, pos: new THREE.Vector3(l.x, l.z, -l.y),
-    minZoom: l.k === '' ? 1.8 : i < 7 ? 0 : 1.4,
+    minZoom: l.k === 'town' ? 0 : l.k === '' ? 1.8 : i < 7 ? 0 : 1.4,
   }));
 
   // views, follows, film
@@ -673,7 +760,8 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   const follows = [];
   if (traffic && cfg.drive) follows.push({ label: cfg.drive, dot: '#c7372f', obj: traffic.lead, zoom: cfg.driveZoom || 9 });
   if (gulls) follows.push({ label: 'Fly with the gulls', dot: '#ffffff', obj: gulls.lead, zoom: 6 });
-  const film = cfg.film({ V, ll, gulls: gulls?.lead, car: traffic?.lead });
+  if (fleet?.lead && cfg.ferry) follows.push({ label: cfg.ferry, dot: '#1f5fa8', obj: fleet.lead, zoom: cfg.ferryZoom || 5 });
+  const film = cfg.film({ V, ll, gulls: gulls?.lead, car: traffic?.lead, ferry: fleet?.lead });
 
   const nTrees = data.trees.length / 5;
   const trailKm = data.roads.filter((r) => r.k === 'trail').reduce((s, r) => {
@@ -686,18 +774,20 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     groundHeight: grid.zmax * 0.55,
     heightAt,
     labels, views, follows,
-    weather: { mode: 'snow', label: 'Snow', toast: cfg.snowToast || 'First snow of the season' },
+    weather: cfg.weather || { mode: 'snow', label: 'Snow', toast: cfg.snowToast || 'First snow of the season' },
     sky: cfg.sky,
     toggles: [{
-      id: 'season', label: 'Spring snowmelt', on: season === 'spring',
+      id: 'season', label: cfg.seasonLabel || 'Spring snowmelt', on: season === 'spring',
       onChange(on) { season = on ? 'spring' : 'autumn'; applySeason(); return on ? cfg.springToast : cfg.autumnToast; },
     }],
     film, simOffset: 0,
-    stats: `${Math.round(nTrees).toLocaleString()} trees · ${Math.round(trailKm)} km of trails · ${data.meta.attribution}`,
+    stats: cfg.stats ? cfg.stats({ data, nTrees, trailKm, boats: fleet?.count || 0 })
+      : `${Math.round(nTrees).toLocaleString()} trees · ${Math.round(trailKm)} km of trails · ${data.meta.attribution}`,
     update(t, dt, ctx) {
       weatherSnow = ctx.rain;
       repaint(false);
       traffic?.step(dt);
+      fleet?.update(t);
       gulls?.update(t, uniforms.uNight.value);
       falls.setFlow((name) => (season === 'spring' ? cfg.flowSpring?.(name) ?? 1 : cfg.flowAutumn?.(name) ?? 0.3));
     },

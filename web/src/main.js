@@ -243,7 +243,7 @@ function tickWorld(t, dt) {
     weather.liveSun = sunPosition(now, PLACE.lat, PLACE.lon);
     timeOfDay = todFromElevation(weather.liveSun.el, weather.liveSun.az > 180);
     slider.value = timeOfDay;
-    clockEl.textContent = `${now.toLocaleTimeString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' })} ${PLACE.where}`;
+    clockEl.textContent = `${now.toLocaleTimeString('en-US', { timeZone: PLACE.tz || 'America/Los_Angeles', hour: 'numeric', minute: '2-digit' })} ${PLACE.where}`;
   }
   applyLighting();
   place.update(t, dt, { rain: weather.rain, night: uniforms.uNight.value });
@@ -288,7 +288,7 @@ for (const tg of place.toggles) {
 }
 if (params.has('season')) {
   const tg = place.toggles.find((x) => x.id === 'season');
-  if (tg && (params.get('season') === 'spring') !== tg.on) { tg.on = !tg.on; setToggle('tg-season', tg.on); tg.onChange(tg.on); }
+  if (tg && params.has('season') && (params.get('season') === 'spring') !== tg.on) { tg.on = !tg.on; setToggle('tg-season', tg.on); tg.onChange(tg.on); }
 }
 document.getElementById('weather-label').textContent = PLACE.name.split(' ')[0];
 const rainBtn = document.getElementById('rain');

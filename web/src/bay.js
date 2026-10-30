@@ -109,7 +109,7 @@ function ferryGeometry() {
 }
 
 // V-shaped foam wake (centre churn + Kelvin arms), drawn behind the stern.
-function wakeMaterial(uniforms) {
+export function wakeMaterial(uniforms) {
   return new THREE.ShaderMaterial({
     transparent: true, depthWrite: false,
     uniforms: { uTime: uniforms.uTime, uAmount: { value: 1 }, uNight: uniforms.uNight },
