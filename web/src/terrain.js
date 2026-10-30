@@ -350,7 +350,7 @@ function waterfalls(falls, uniforms) {
     const pts = [];
     for (let i = 0; i < f.p.length; i += 3) pts.push(new THREE.Vector3(f.p[i], f.p[i + 2], -f.p[i + 1]));
     if (pts.length < 2) continue;
-    const w = f.drop > 250 ? 16 : 10;
+    const w = f.drop > 250 ? 26 : 16;
     const pos = [], uv = [];
     let v = 0;
     for (let k = 0; k < pts.length; k++) {
@@ -384,12 +384,30 @@ function waterfalls(falls, uniforms) {
           float streak = n(vec2(vUv.x * 9.0, vUv.y * 0.06 - uTime * 1.6)) * 0.6 + n(vec2(vUv.x * 23.0, vUv.y * 0.15 - uTime * 3.0)) * 0.4;
           float a = (0.35 + 0.65 * streak) * (1.0 - pow(across / width, 3.0)) * uFlow;
           a *= smoothstep(0.0, 6.0, vUv.y) * (0.75 + 0.25 * smoothstep(uLen * 0.6, uLen, vUv.y));
-          vec3 c = mix(vec3(0.97, 0.99, 1.0), vec3(0.55, 0.62, 0.78), uNight);
-          gl_FragColor = vec4(c, a * 0.95);
+          vec3 c = mix(vec3(1.0), vec3(0.55, 0.62, 0.78), uNight);
+          gl_FragColor = vec4(c, min(1.0, a * 1.25));
         }`,
     });
     const mesh = new THREE.Mesh(g, mat);
     mesh.renderOrder = 4;
+    // the dark wet streak the water leaves on the granite
+    const wetMat = new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      uniforms: { uFlow: flow, uLen: { value: v } },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; vec3 p = position; p.y -= 0.6; gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }',
+      fragmentShader: `uniform float uFlow, uLen; varying vec2 vUv;
+        void main(){ float a = (1.0 - pow(abs(vUv.x * 2.0 - 1.0), 2.0)) * smoothstep(0.0, 10.0, vUv.y) * smoothstep(uLen, uLen * 0.85, vUv.y);
+          gl_FragColor = vec4(0.12, 0.12, 0.13, a * (0.28 + 0.27 * uFlow)); }`,
+    });
+    const wetG = g.clone();
+    const wp = wetG.attributes.position.array;
+    for (let k = 0; k < wp.length; k += 6) {          // a little wider than the water
+      const cx = (wp[k] + wp[k + 3]) / 2, cz = (wp[k + 2] + wp[k + 5]) / 2;
+      for (const o of [0, 3]) { wp[k + o] = cx + (wp[k + o] - cx) * 1.8; wp[k + o + 2] = cz + (wp[k + o + 2] - cz) * 1.8; }
+    }
+    const wet = new THREE.Mesh(wetG, wetMat);
+    wet.renderOrder = 3;
+    group.add(wet);
     // a soft cloud of mist where it lands
     const mistMat = new THREE.SpriteMaterial({ color: '#ffffff', transparent: true, opacity: 0.4, depthWrite: false, map: mistTexture() });
     const mist = new THREE.Sprite(mistMat);
@@ -533,16 +551,17 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
   scene.add(slabWalls(grid, z, depth));
 
   // water
-  const waterMat = new THREE.MeshStandardMaterial({ color: cfg.waterColor || '#4f8fb3', roughness: 0.12, metalness: 0.05 });
-  animateWater(waterMat, uniforms);
+  const wScale = Math.max(1, maxDim / 4000);
+  const waterMat = new THREE.MeshStandardMaterial({ color: cfg.waterColor || '#4f8fb3', roughness: 0.22, metalness: 0.0, envMapIntensity: 0.35 });
+  animateWater(waterMat, uniforms, wScale);
   for (const lake of data.lakes) {
     const y = (lake.level - grid.h0) * grid.vexag + 0.4;
     const m = flatLayer([lake.r], y, waterMat);
     m.receiveShadow = true;
     scene.add(m);
   }
-  const riverMat = new THREE.MeshStandardMaterial({ color: cfg.riverColor || '#5b9cc0', roughness: 0.2, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  animateWater(riverMat, uniforms);
+  const riverMat = new THREE.MeshStandardMaterial({ color: cfg.riverColor || '#5b9cc0', roughness: 0.3, envMapIntensity: 0.35, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  animateWater(riverMat, uniforms, wScale * 0.5);
   const riv = ribbonMesh(data.rivers.map((r) => ribbon(r.p, Math.max(r.w * 1.3, grid.dx * 0.5))), riverMat);
   if (riv) scene.add(riv);
 

@@ -3,27 +3,28 @@
 import * as THREE from 'three';
 import * as BGU from 'three/addons/utils/BufferGeometryUtils.js';
 
-export function animateWater(material, uniforms) {
+export function animateWater(material, uniforms, scale = 1) {
   material.onBeforeCompile = (sh) => {
     sh.uniforms.uTime = uniforms.uTime;
     sh.uniforms.uNight = uniforms.uNight;
+    sh.uniforms.uWScale = { value: 1 / scale };
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform float uTime; uniform float uNight; varying vec3 vWPos;
+        uniform float uTime; uniform float uNight; uniform float uWScale; varying vec3 vWPos;
         float wv(vec2 p, vec2 d, float f, float s) { return sin(dot(p, d) * f + uTime * s); }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
-        vec2 wp = vWPos.xz;
+        vec2 wp = vWPos.xz * uWScale;
         float w = wv(wp, vec2(0.8, 0.6), 0.09, 1.3) + wv(wp, vec2(-0.3, 0.95), 0.13, 1.7) + 0.6 * wv(wp, vec2(0.95, -0.2), 0.31, 2.3);
         diffuseColor.rgb *= 0.95 + 0.03 * w;`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         vec3 wn = vec3(
-          0.035 * cos(dot(vWPos.xz, vec2(0.8, 0.6)) * 0.09 + uTime * 1.3) + 0.025 * cos(dot(vWPos.xz, vec2(0.95, -0.2)) * 0.31 + uTime * 2.3)
-            + 0.02 * cos(dot(vWPos.xz, vec2(0.31, 0.95)) * 0.53 + uTime * 2.9),
+          0.035 * cos(dot(vWPos.xz * uWScale, vec2(0.8, 0.6)) * 0.09 + uTime * 1.3) + 0.025 * cos(dot(vWPos.xz * uWScale, vec2(0.95, -0.2)) * 0.31 + uTime * 2.3)
+            + 0.02 * cos(dot(vWPos.xz * uWScale, vec2(0.31, 0.95)) * 0.53 + uTime * 2.9),
           0.0,
-          0.035 * cos(dot(vWPos.xz, vec2(-0.3, 0.95)) * 0.13 + uTime * 1.7) + 0.02 * cos(dot(vWPos.xz, vec2(-0.9, 0.4)) * 0.47 + uTime * 2.6));
+          0.035 * cos(dot(vWPos.xz * uWScale, vec2(-0.3, 0.95)) * 0.13 + uTime * 1.7) + 0.02 * cos(dot(vWPos.xz * uWScale, vec2(-0.9, 0.4)) * 0.47 + uTime * 2.6));
         normal = normalize(normal + (viewMatrix * vec4(wn, 0.0)).xyz);`);
   };
   material.needsUpdate = true;

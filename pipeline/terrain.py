@@ -374,14 +374,14 @@ def build(place):
         m = mask_of([p])
         if m.sum() < 3:
             continue
-        level = float(np.percentile(dem[m], 15))
-        # lower only the interior, so the shore meets the water without a step
-        inner = m.copy()
-        inner[1:, :] &= m[:-1, :]; inner[:-1, :] &= m[1:, :]
-        inner[:, 1:] &= m[:, :-1]; inner[:, :-1] &= m[:, 1:]
-        dem[inner] = np.minimum(dem[inner], level) - 1.5
-        edge = m & ~inner
-        dem[edge] = np.minimum(dem[edge], level + 0.2)
+        level = float(np.median(dem[m]))
+        # the DEM is hydro-flattened under lakes: only cells near the lake
+        # level belong to the water (outlines that spill onto a shore slope
+        # keep their ground)
+        m = m & (np.abs(dem - level) < 2.5)
+        if m.sum() < 3:
+            continue
+        dem[m] = np.minimum(dem[m], level) - 1.0
         water_mask |= m
         ps = orient(p.simplify(max(2.0, g.dx * 0.25)), 1.0)
         rings = [ring_flat(ps.exterior.coords)] + [ring_flat(h.coords) for h in ps.interiors if Polygon(h).area > g.dx * g.dy]
