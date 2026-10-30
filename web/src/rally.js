@@ -263,12 +263,12 @@ export async function buildRally({ scene, uniforms, data, heightAt, cfg }) {
     uniforms: dustU,
     vertexShader: `attribute float aBirth; uniform float uPx, uClock; varying float vA;
       void main(){ float age = uClock - aBirth; vA = age < 0.0 ? 0.0 : (1.0 - smoothstep(0.0, 3.2, age));
-        gl_PointSize = (${(VS * 3.2).toFixed(1)} + age * ${(VS * 6).toFixed(1)}) / uPx;
+        gl_PointSize = (${(VS * 2.2).toFixed(1)} + age * ${(VS * 3.5).toFixed(1)}) / uPx;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position + vec3(0.0, age * ${(VS * 1.5).toFixed(1)}, 0.0), 1.0); }`,
     fragmentShader: `uniform float uNight; varying float vA;
       void main(){ float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard;
-        float a = vA * 0.42 * smoothstep(0.5, 0.1, d);
-        gl_FragColor = vec4(mix(vec3(0.86, 0.74, 0.56), vec3(0.3, 0.29, 0.3), uNight * 0.7), a); }`,
+        float a = vA * 0.38 * smoothstep(0.5, 0.1, d);
+        gl_FragColor = vec4(mix(vec3(0.80, 0.66, 0.48), vec3(0.3, 0.29, 0.3), uNight * 0.7), a); }`,
   }));
   dust.frustumCulled = false;
   dust.renderOrder = 9;
@@ -333,7 +333,7 @@ export async function buildRally({ scene, uniforms, data, heightAt, cfg }) {
   const order = stages.map((s) => s.n);
   stages.forEach((s) => {
     const f = s.p?.length ? s.p : s.ferry;
-    if (!f?.length || s.kind === 'rest') return;
+    if (!f?.length || s.kind === 'rest' || (s.loop && (s.special_km || 0) < 60)) return;   // short loops: the town label says it
     const n = f.length / 3;
     const k = s.loop ? Math.floor(n * 0.5) : Math.floor(n * 0.5);
     const txt = s.n === 'P' ? 'Prologue' : s.kind === 'transfer' ? 'Ferry & transfer' : `Stage ${s.n}`;

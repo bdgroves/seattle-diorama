@@ -53,7 +53,7 @@ PLACE = {
 }
 TILE_ZOOM = 8
 SCALE = 40                     # scene metres = real metres / SCALE
-VEXAG = 16                     # vertical exaggeration over the (scaled) horizontal
+VEXAG = 9                      # vertical exaggeration over the (scaled) horizontal
 SEA_FLOOR = -1500              # clamp the abyssal Atlantic so the slab stays shallow
 ROUTE_URL = "https://brooksgroves.com/dakar.json"
 
@@ -260,7 +260,7 @@ def build():
     cls[steppe] = SAGE
     cls[steppe & (dem > 1300) & (n2 > 0.55)] = FOREST          # cedar and holm oak on the Middle Atlas
     cls[desert] = SAND
-    cls[desert & (dem > 250) & (dem < 1400) & (slope < 2.2) & (n3 > 0.48)] = LAVA   # hamada: dark stony plateau
+    cls[desert & (dem > 250) & (dem < 1400) & (slope < 1.6) & (n3 > 0.64) & (n2 > 0.4)] = LAVA   # hamada: dark stony plateau
     cls[(arid > 0.36) & (slope > 7.5)] = ROCK
     cls[green & (slope > 13)] = ROCK
     cls[dem > 2550] = ALPINE
@@ -303,7 +303,7 @@ def build():
 
     for name, la, lo, rk, _lab in CITIES:
         c, r_ = px(la, lo)
-        rr = max(0.9, rk * 1000 / g.dx * 0.9)
+        rr = max(0.7, rk * 1000 / g.dx * 0.6)
         m = mask_draw(lambda d: d.ellipse([c - rr, r_ - rr, c + rr, r_ + rr], fill=255))
         cls[m & land] = DEVELOPED
         cx, cy = g.proj(la, lo)
