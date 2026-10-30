@@ -130,9 +130,100 @@ def fetch_dem_terrarium(g: Grid, z=13) -> np.ndarray:
     return out
 
 
-def overpass_query(bbox):
+class _Done(BaseException):
+    """Raised to skip the 3DEP / Terrarium chain once another source has been saved."""
+
+
+def wgs84_to_lv95(lat, lon):
+    """swisstopo's approximate formulas (good to about a metre)."""
+    p = (np.asarray(lat) * 3600 - 169028.66) / 10000
+    l = (np.asarray(lon) * 3600 - 26782.5) / 10000
+    e = 2600072.37 + 211455.93 * l - 10938.51 * l * p - 0.36 * l * p * p - 44.54 * l ** 3
+    n = 1200147.07 + 308807.95 * p + 3745.25 * l * l + 76.63 * p * p - 194.56 * l * l * p + 119.79 * p ** 3
+    return e, n
+
+
+def fetch_dem_swissalti3d(g: Grid, fill_zoom=13) -> np.ndarray:
+    """swisstopo swissALTI3D 2 m tiles (1 km COGs in LV95) from the STAC API,
+    sampled onto the grid; Terrain Tiles fill anything outside Switzerland."""
+    import tifffile
+    s, w, n, e = g.bbox
+    print(f"  swissALTI3D tiles for {g.nx} x {g.ny} ...", flush=True)
+    url = (f"https://data.geo.admin.ch/api/stac/v0.9/collections/ch.swisstopo.swissalti3d/items"
+           f"?bbox={w},{s},{e},{n}&limit=100")
+    best = {}
+    while url:
+        r = requests.get(url, timeout=120, headers={"User-Agent": UA})
+        r.raise_for_status()
+        d = r.json()
+        for f in d.get("features", []):
+            for k, a in f.get("assets", {}).items():
+                if not k.endswith(".tif") or "_2_2056_" not in k:
+                    continue
+                m = re.search(r"_(\d{4})_(\d{4})-(\d{4})_", k)
+                if not m:
+                    continue
+                yr, tx, ty = int(m.group(1)), int(m.group(2)), int(m.group(3))
+                if (tx, ty) not in best or best[(tx, ty)][0] < yr:
+                    best[(tx, ty)] = (yr, a["href"])
+        url = next((l["href"] for l in d.get("links", []) if l.get("rel") == "next"), None)
+    print(f"  {len(best)} tiles", flush=True)
+    lat = np.linspace(n, s, g.ny)[:, None] * np.ones((1, g.nx))
+    lon = np.ones((g.ny, 1)) * np.linspace(w, e, g.nx)[None, :]
+    E, N = wgs84_to_lv95(lat, lon)
+    out = np.full((g.ny, g.nx), np.nan, np.float32)
+    tx = np.floor(E / 1000).astype(int)
+    ty = np.floor(N / 1000).astype(int)
+    for k, ((kx, ky), (yr, href)) in enumerate(sorted(best.items())):
+        sel = (tx == kx) & (ty == ky)
+        if not sel.any():
+            continue
+        for attempt in range(4):
+            try:
+                rr = requests.get(href, timeout=120, headers={"User-Agent": UA})
+                rr.raise_for_status()
+                break
+            except Exception as exc:  # noqa: BLE001
+                if attempt == 3:
+                    raise
+                print(f"  retry {href}: {exc}", flush=True)
+                time.sleep(3 + 4 * attempt)
+        with tifffile.TiffFile(io.BytesIO(rr.content)) as tf:
+            page = tf.pages[0]
+            arr = page.asarray().astype(np.float32)
+            tie = page.tags["ModelTiepointTag"].value
+            scale = page.tags["ModelPixelScaleTag"].value
+        x0, y0, res = tie[3], tie[4], scale[0]
+        arr[arr < -1000] = np.nan
+        # average 2 m down to 10 m first, so the 18 m grid doesn't alias
+        k5 = 5
+        hh, ww = (arr.shape[0] // k5) * k5, (arr.shape[1] // k5) * k5
+        arr = arr[:hh, :ww].reshape(hh // k5, k5, ww // k5, k5).mean(axis=(1, 3))
+        res = res * k5
+        c = (E[sel] - x0) / res - 0.5
+        r_ = (y0 - N[sel]) / res - 0.5
+        h, wd = arr.shape
+        c = np.clip(c, 0, wd - 1.001); r_ = np.clip(r_, 0, h - 1.001)
+        i0, j0 = c.astype(int), r_.astype(int)
+        fx, fy = c - i0, r_ - j0
+        v = (arr[j0, i0] * (1 - fx) * (1 - fy) + arr[j0, i0 + 1] * fx * (1 - fy)
+             + arr[j0 + 1, i0] * (1 - fx) * fy + arr[j0 + 1, i0 + 1] * fx * fy)
+        out[sel] = v
+        if k % 40 == 0:
+            print(f"  ... {k}/{len(best)}", flush=True)
+    miss = ~np.isfinite(out)
+    print(f"  swissALTI3D covers {100 - miss.mean() * 100:.0f}% of the box; Terrain Tiles for the rest", flush=True)
+    if miss.any():
+        fill = fetch_dem_terrarium(g, fill_zoom)
+        out[miss] = fill[miss]
+        # feather the seam a little
+    return out
+
+
+def overpass_query(bbox, extra=""):
     s, w, n, e = bbox
     b = f"({s},{w},{n},{e})"
+    extra = extra.replace("{b}", b)
     return f"""
 [out:json][timeout:240];
 (
@@ -158,7 +249,7 @@ def overpass_query(bbox):
   way["historic"]["name"]{b};
   way["route"="ferry"]{b};
   way["highway"]{b};
-  way["building"]{b};
+  way["building"]{b};{extra}
 );
 out geom;
 """
@@ -173,6 +264,13 @@ def fetch(place, force=False):
     stamp = RAW / f"{pid}_dem.key"
     if force or not dem_path.exists() or not stamp.exists() or stamp.read_text() != key:
         try:
+            if place.get("dem") == "swissalti3d":
+                dem = fetch_dem_swissalti3d(g, place.get("tile_zoom", 13))
+                np.save(dem_path, dem)
+                stamp.write_text(key)
+                (RAW / f"{pid}_dem.src").write_text("swisstopo swissALTI3D (2 m), Terrain Tiles on AWS in Italy")
+                print(f"  elevation {np.nanmin(dem):.0f}-{np.nanmax(dem):.0f} m")
+                raise _Done()
             if place.get("dem") == "terrarium":          # outside the US: no 3DEP
                 raise RuntimeError("not in the US")
             print(f"[{pid}] USGS 3DEP elevation {g.nx} x {g.ny} ...")
@@ -182,12 +280,15 @@ def fetch(place, force=False):
             print(f"  3DEP skipped ({exc}); using Terrarium tiles {g.nx} x {g.ny}")
             dem = fetch_dem_terrarium(g, place.get("tile_zoom", 13))
             src = "Terrain Tiles on AWS (SRTM, EU-DEM, bathymetry)"
-        np.save(dem_path, dem)
-        stamp.write_text(key)
-        (RAW / f"{pid}_dem.src").write_text(src)
-        print(f"  elevation {dem.min():.0f}-{dem.max():.0f} m")
+        except _Done:
+            dem = None
+        if dem is not None:
+            np.save(dem_path, dem)
+            stamp.write_text(key)
+            (RAW / f"{pid}_dem.src").write_text(src)
+            print(f"  elevation {dem.min():.0f}-{dem.max():.0f} m")
     osm_path = RAW / f"{pid}_osm.json"
-    q = overpass_query(place["bbox"])
+    q = overpass_query(place["bbox"], place.get("osm_extra", ""))
     qkey = hashlib.md5(q.encode()).hexdigest()[:10]
     qstamp = RAW / f"{pid}_osm.key"
     if force or not osm_path.exists() or not qstamp.exists() or qstamp.read_text() != qkey:
@@ -493,7 +594,11 @@ def build(place):
         cls[dem < place.get("sage_top", 2300)] = SAGE
     if place["veg"] == "med":                         # maquis low down, chestnut and oak woods above
         cls[dem < place.get("maquis_top", 450)] = SAGE
+    if place["veg"] == "alps":                        # open pasture unless OSM maps a wood
+        cls[:] = MEADOW
     cls[dem > tl] = ALPINE
+    if place["veg"] == "alps":
+        cls[dem > place.get("alpine_top", 2750)] = ROCK
     cls[(slope > 34) & (dem > tl - 400)] = ROCK
     cls[slope > place.get("rock_slope", 38)] = ROCK
     for geoms, c in ((scrub, SAGE), (wood, FOREST), (meadow, MEADOW), (developed, DEVELOPED),
@@ -631,6 +736,12 @@ def build(place):
                 {"r": [ring], "m": round(base - 2, 1), "h": round(base + H, 1),
                  "k": "res" if p.area < 300 else "civ", "s": round(sd, 3)})
     print(f"  buildings: {len(bld_out)}")
+    chalets_out = []
+    if place.get("chalets"):
+        import alpine
+        chalets_out = alpine.chalets(bld_out)
+        bld_out = []
+        print(f"  chalets: {len(chalets_out) // 8}")
 
     # ---- trees
     trees = []
@@ -687,6 +798,8 @@ def build(place):
                 kind = 1
             elif near_water[j, i] and 1900 < e < 3000 and rnd.random() < (0.6 if place["veg"] == "eastside" else 0.12):
                 kind = 2
+            elif place["veg"] == "alps" and rnd.random() < 0.5:   # larch among the arolla pines
+                kind = 1
             # thin out up high
             if e > tl - 250 and rnd.random() < (e - (tl - 250)) / 250:
                 continue
@@ -922,6 +1035,12 @@ def build(place):
                     got += 1
         print(f"  beach umbrellas: {len(umbrellas) // 4}")
 
+    alpine_out = {}
+    if place.get("alpine"):
+        import alpine
+        alpine_out = alpine.extras(place, els, g, zat, hat, dem, cls, slope, clip, rnd, vex)
+        alpine_out["chalets"] = chalets_out
+
     # ---- write
     zmax = float(z.max())
     zq = np.clip(np.round(z / zmax * 65535), 0, 65535).astype("<u2")
@@ -944,6 +1063,7 @@ def build(place):
         "lamps": lamps, "tufa": tufa, "gulls": gulls,
         "drive": drive, "routes": routes, "anchored": anchored, "umbrellas": umbrellas,
         "models": models_out, "model_boxes": model_boxes,
+        **alpine_out,
     }
     (OUT / f"{pid}.json").write_text(json.dumps(scene, separators=(",", ":"), default=float))
     kb = ((OUT / f"{pid}.json").stat().st_size + (OUT / f"{pid}.bin").stat().st_size) / 1e6
@@ -968,8 +1088,15 @@ def main():
         except SystemExit as exc:
             print(exc)
             failed.append(pid)
+        except Exception:                      # one broken place shouldn't take the others down
+            import traceback
+            traceback.print_exc()
+            print(f"[{pid}] FAILED")
+            failed.append(pid)
     if failed:
-        sys.exit(f"failed: {', '.join(failed)}")
+        print(f"failed: {', '.join(failed)}")
+        if len(failed) == len(ids):
+            sys.exit(1)
 
 
 if __name__ == "__main__":

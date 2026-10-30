@@ -180,4 +180,60 @@ AMALFI = {
     ],
 }
 
-PLACES = {p["id"]: p for p in (YOSEMITE, TUOLUMNE, MONO, AMALFI)}
+
+ZERMATT = {
+    "id": "zermatt",
+    "name": "Zermatt & the Matterhorn",
+    # the Matterhorn and the Zmutt glacier in the west to Monte Rosa in the east,
+    # Zermatt village in the north to Klein Matterhorn and the Italian border
+    "bbox": (45.918, 7.622, 46.040, 7.880),
+    "cell": 18,
+    "vexag": 1.0,
+    "dem": "swissalti3d",                  # swisstopo 2 m elevation; Terrarium fills Italy
+    "tile_zoom": 13,
+    "veg": "alps",
+    "treeline": 2250,
+    "alpine_top": 2750,                    # alpine meadow gives way to scree and rock
+    "rock_slope": 40,
+    "tree_cap": 70000,
+    "tree_tall": 26,
+    "min_building": 20,
+    "chalets": True,
+    "alpine": True,
+    "osm_extra": """
+  way["aerialway"]{b};
+  way["railway"~"^(rail|narrow_gauge|funicular|light_rail)$"]{b};
+  way["piste:type"="downhill"]{b};
+  node["aerialway"="station"]["name"]{b};
+  node["tourism"~"^(alpine_hut|wilderness_hut)$"]{b};
+  way["tourism"~"^(alpine_hut)$"]{b};
+""",
+    "labels": [
+        ("Matterhorn", r"^matterhorn", 45.9763, 7.6586, 120, "peak"),
+        ("Zermatt", r"^zermatt$", 46.0207, 7.7491, 90, "town"),
+        ("Dufourspitze · Monte Rosa", r"^dufourspitze", 45.9369, 7.8668, 120, "peak"),
+        ("Breithorn", r"^breithorn$", 45.9411, 7.7477, 110, "peak"),
+        ("Klein Matterhorn", r"^klein matterhorn", 45.9381, 7.7298, 100, "peak"),
+        ("Gornergrat", r"^gornergrat$", 45.9839, 7.7844, 90, "peak"),
+        ("Liskamm", r"^liskamm|^lyskamm", 45.9225, 7.8350, 110, "peak"),
+        ("Hörnlihütte", r"h(ö|oe)rnli", 45.9824, 7.6740, 70, ""),
+        ("Gornergletscher", r"^gornergletscher", 45.9555, 7.8000, 80, ""),
+        ("Riffelsee", r"^riffelsee$", 45.9887, 7.7699, 60, ""),
+        ("Stellisee", r"^stellisee$", 46.0078, 7.8037, 60, ""),
+        ("Schwarzsee", r"^schwarzsee$", 45.9925, 7.7090, 60, ""),
+        ("Sunnegga", r"^sunnegga", 46.0122, 7.7698, 60, ""),
+        ("Rothorn", r"^(unter)?rothorn$", 46.0198, 7.8027, 70, ""),
+        ("Trockener Steg", r"^trockener steg", 45.9618, 7.7177, 60, ""),
+        ("Furi", r"^furi$", 46.0040, 7.7320, 50, ""),
+        ("Findeln", r"^findeln$", 46.0128, 7.7618, 50, ""),
+        ("Zmutt", r"^zmutt$", 46.0093, 7.7238, 50, ""),
+        ("Riffelalp", r"^riffelalp$", 45.9958, 7.7513, 50, ""),
+        ("Monte Rosa Hütte", r"monte rosa.?h(ü|u)tte", 45.9547, 7.8132, 60, ""),
+        ("Theodul Pass", r"^theodul", 45.9445, 7.7090, 60, ""),
+    ],
+    "falls": [],
+    # climbers on the Hörnli ridge and the north face light up before dawn
+    "walls": [(45.9790, 7.6650, 420), (45.9775, 7.6600, 300)],
+}
+
+PLACES = {p["id"]: p for p in (YOSEMITE, TUOLUMNE, MONO, AMALFI, ZERMATT)}
