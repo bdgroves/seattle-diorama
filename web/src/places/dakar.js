@@ -62,7 +62,7 @@ const DAKAR = {
     { id: 'agadir', label: 'Agadir: rest day', lat: 30.0, lon: -9.4, az: -0.5, polar: 1.0, zoom: 3.0 },
     { id: 'smara', label: 'Smara & the refuge', lat: 26.3, lon: -12.6, az: 0.3, polar: 0.95, zoom: 2.4 },
     { id: 'marrakech', label: 'Marrakech: the finish', lat: 31.63, lon: -8.0, az: -0.3, polar: 1.05, zoom: 6 },
-    { id: 'canaries', label: 'Canary Islands', lat: 28.3, lon: -15.5, az: -0.2, polar: 1.0, zoom: 3.2 },
+    { id: 'canaries', label: 'Canary Islands', lat: 28.6, lon: -15.0, az: 0.55, polar: 1.02, zoom: 3.4 },
   ],
   film: ({ V, extra }) => {
     const bikes = extra?.leads?.bikes;

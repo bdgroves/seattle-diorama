@@ -373,6 +373,7 @@ addEventListener('resize', () => {
 // ------------------------------------------------------------------ go
 let simT = params.has('sim') ? parseFloat(params.get('sim')) : 0;
 applyTime(timeOfDay);
+if (simT > 0) place.seek?.(simT, 1 / 30);      // ?sim=<seconds>: run the moving things forward first
 setView(VIEWS[params.get('view')] || VIEWS.overview || place.views[0]);
 if (params.has('cam')) {
   const c = params.get('cam').split(',').map(Number);
