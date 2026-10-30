@@ -11,6 +11,9 @@ python = "3.12.*"
 nodejs = ">=22"
 requests = ">=2.31"
 shapely = ">=2.0"
+numpy = ">=1.26"
+pillow = ">=10"
+tifffile = ">=2024.1"
 playwright = ">=1.45"
 ffmpeg = "*"
 
@@ -21,6 +24,11 @@ fetch = "python pipeline/fetch.py"
 build = "python pipeline/build.py"
 # fetch + build in one go
 city = { depends-on = ["fetch", "build"] }
+# Sierra terrain dioramas (Yosemite Valley, Tuolumne Meadows, Mono Lake):
+# USGS 3DEP elevation + OpenStreetMap -> web/public/data/<place>.json/.bin
+sierra = "python pipeline/terrain.py all"
+sierra-fetch = "python pipeline/terrain.py fetch"
+sierra-build = "python pipeline/terrain.py build"
 # re-fetch even if a cached download exists
 refetch = "python pipeline/fetch.py --force"
 
