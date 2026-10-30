@@ -76,8 +76,34 @@ The slabs have layered rock walls, 100 m contour lines (50 m at Tuolumne)
 and their own mountain horizons, with Dana and the crest behind Mono Lake.
 
 ```bash
-pixi run sierra   # fetch elevation + OSM for all three and build them
+pixi run sierra   # fetch elevation + OSM for all the terrain places and build them
 ```
+
+## The Amalfi Coast
+
+`?place=amalfi` crosses the Atlantic: Capri and the Sorrento peninsula in the
+west, Positano, Praiano, Furore, Amalfi, Atrani and Ravello along the cliffs.
+Outside the US there's no 3DEP, so the land comes from **Terrain Tiles on AWS**
+(SRTM / EU-DEM), split from the sea along the **OpenStreetMap coastline**.
+
+- **The sea.** A translucent surface over a seabed that shelves fast off the
+  cliffs, sand to turquoise to deep blue, with the water column showing on the
+  slab's cut edges. (Terrain Tiles have no bathymetry at this zoom, so the
+  seabed is shaped from distance to shore, not surveyed.)
+- **The coast road.** The SS163 Amalfitana is pulled from OSM, chained into
+  one 37 km line and driven, Positano heading east. *Drive the Amalfi Coast
+  road* rides along.
+- **Boats.** Ferries and hydrofoils run the real OSM ferry lines (plus
+  Positano–Amalfi–Capri) with wakes and dwell at the ports; yachts and
+  sailboats sit at anchor off Positano, the Faraglioni, Li Galli, Marina del
+  Cantone and the little beaches. *Ferry to Capri* rides along.
+- **Lemon terraces and maquis.** Orchards and the garden hillsides get terrace
+  stripes and lemon trees, umbrella pines and maquis lower down, chestnut and
+  oak woods up on the Lattari.
+- **High summer** puts the beach umbrellas out (Positano orange, Amalfi blue
+  and yellow) and fills the anchorages; off-season empties them and turns the
+  chestnuts gold.
+- Vesuvius stands on the horizon to the north, Ischia off to the west.
 
 ## Quick start
 
