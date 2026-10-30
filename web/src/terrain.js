@@ -784,8 +784,10 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     const line = snowline();
     if (force || lastLine === null || Math.abs(line - lastLine) > 15) { terr.paint(season, line); lastLine = line; }
   }
+  let extraRef = null;
   function applySeason() {
     repaint(true);
+    extraRef?.setSeason?.(season);
     fleet?.setSummer(season === 'spring');
     if (brollies) brollies.visible = season === 'spring';
     trees.recolor(season);
@@ -801,6 +803,8 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
 
   // place-specific extras (the Dakar's route and convoy)
   const extra = cfg.extras ? await cfg.extras({ scene, uniforms, data, grid, heightAt, ll, kx, ky, lat0, lon0 }) : null;
+  extraRef = extra;
+  extra?.setSeason?.(season);
 
   // views, follows, film
   const views = cfg.views.map((v) => ({ ...v, target: ll(v.lat, v.lon, v.dz || 0) }));
@@ -835,7 +839,7 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
     }] : []),
     creditsHtml: creditsHtml(models.loaded),
     film, simOffset: 0,
-    stats: cfg.stats ? cfg.stats({ data, nTrees, trailKm, boats: fleet?.count || 0 })
+    stats: cfg.stats ? cfg.stats({ data, nTrees, trailKm, boats: fleet?.count || 0, extra })
       : `${Math.round(nTrees).toLocaleString()} trees · ${Math.round(trailKm)} km of trails · ${data.meta.attribution}`,
     update(t, dt, ctx) {
       weatherSnow = ctx.rain;

@@ -261,6 +261,8 @@ def fetch(place, force=False):
     pid = place["id"]
     dem_path = RAW / f"{pid}_dem.npy"
     key = hashlib.md5(f"{place['bbox']}{g.nx}{g.ny}".encode()).hexdigest()[:10]
+    if place.get("dem") == "swissalti3d":
+        key += "-ch2"                                 # re-fetch when the source changes
     stamp = RAW / f"{pid}_dem.key"
     if force or not dem_path.exists() or not stamp.exists() or stamp.read_text() != key:
         try:
@@ -277,6 +279,8 @@ def fetch(place, force=False):
             dem = fetch_dem_3dep(g)
             src = "USGS 3DEP"
         except Exception as exc:  # noqa: BLE001
+            import traceback
+            traceback.print_exc()
             print(f"  3DEP skipped ({exc}); using Terrarium tiles {g.nx} x {g.ny}")
             dem = fetch_dem_terrarium(g, place.get("tile_zoom", 13))
             src = "Terrain Tiles on AWS (SRTM, EU-DEM, bathymetry)"

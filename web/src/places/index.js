@@ -36,6 +36,13 @@ export const PLACES = [
     load: () => import('./sierra.js').then((m) => m.sierraLoader(m.AMALFI)),
   },
   {
+    id: 'zermatt', name: 'Zermatt', tz: 'Europe/Zurich',
+    eyebrow: 'Valais, Switzerland', title: 'Zermatt <em>&amp;</em> the Matterhorn',
+    blurb: 'Gondolas, the Gornergrat railway, ski pistes, chalets and cows below the Matterhorn, on swisstopo elevation.',
+    lat: 46.0, lon: 7.75, where: 'in Zermatt',
+    load: () => import('./zermatt.js').then((m) => m.zermattLoader()),
+  },
+  {
     id: 'dakar', name: 'Dakar Rally 2027', tz: 'Africa/Casablanca',
     eyebrow: 'Portugal & Morocco · 9–23 January 2027', title: 'Dakar <em>2027</em>',
     blurb: 'The 49th Dakar: the Algarve, a ferry to Africa, and twelve stages across Morocco to Marrakech.',
