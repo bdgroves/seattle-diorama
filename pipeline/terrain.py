@@ -573,25 +573,29 @@ def build(place):
 
     # ---- waterfalls: find the cliff that matches each fall's real drop, then
     # follow the steepest way down it
+    # lowest of the 8 neighbours for every cell (D8 flow direction)
+    pad = np.pad(dem, 1, mode="edge")
+    offs = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+    stack = np.stack([pad[1 + dj:1 + dj + g.ny, 1 + di:1 + di + g.nx] for dj, di in offs])
+    lowest = stack.argmin(0)
+    lower = stack.min(0) < dem - 0.05
+
     def descend(x, y, drop):
-        pts = [(x, y, hat(x, y))]
-        step = max(3.0, g.dx * 0.25)
+        c, r = g.px(x, y)
+        i, j = int(round(c)), int(round(r))
+        if not (0 <= i < g.nx and 0 <= j < g.ny):
+            return [(x, y, hat(x, y))], 0.0
+        top = dem[j, i]
+        pts = [(g.x0 + i * g.dx, g.y1 - j * g.dy, float(top))]
         horiz = 0.0
-        while horiz < drop * 2.5 + 60:
-            cx, cy, ch = pts[-1]
-            best = None
-            for a in range(0, 360, 20):
-                nx_, ny_ = cx + step * math.cos(math.radians(a)), cy + step * math.sin(math.radians(a))
-                if not clip.contains(Point(nx_, ny_)):
-                    continue
-                nh = hat(nx_, ny_)
-                if best is None or nh < best[2]:
-                    best = (nx_, ny_, nh)
-            if best is None or best[2] >= ch - 0.05:
+        while horiz < drop * 2.5 + 60 and lower[j, i]:
+            dj, di = offs[lowest[j, i]]
+            j, i = j + dj, i + di
+            if not (0 <= i < g.nx and 0 <= j < g.ny):
                 break
-            pts.append(best)
-            horiz += step
-            if pts[0][2] - best[2] >= drop:
+            horiz += math.hypot(di * g.dx, dj * g.dy)
+            pts.append((g.x0 + i * g.dx, g.y1 - j * g.dy, float(dem[j, i])))
+            if top - dem[j, i] >= drop:
                 break
         return pts, horiz
 
@@ -602,8 +606,8 @@ def build(place):
         if hit and isinstance(hit[1], Point) and hit[1].distance(Point(fx, fy)) < 500:
             fx, fy = (fx + hit[1].x) / 2, (fy + hit[1].y) / 2
         best, best_score = None, -1
-        for ox in range(-210, 211, 15):
-            for oy in range(-210, 211, 15):
+        for ox in range(-210, 211, int(g.dx)):
+            for oy in range(-210, 211, int(g.dy)):
                 sx, sy = fx + ox, fy + oy
                 if math.hypot(ox, oy) > 210 or not clip.contains(Point(sx, sy)):
                     continue

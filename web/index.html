@@ -14,24 +14,20 @@
   <div id="labels"></div>
 
   <header class="card title">
-    <div class="eyebrow">Seattle, Washington</div>
-    <h1>Seattle Center <em>to</em> Westlake</h1>
-    <p>The Needle, the Monorail and the Westin, rebuilt from open map data.</p>
+    <div class="eyebrow" id="eyebrow">Seattle, Washington</div>
+    <h1 id="place-title">Seattle Center <em>to</em> Westlake</h1>
+    <p id="blurb">The Needle, the Monorail and the Westin, rebuilt from open map data.</p>
+    <div id="place-picker" class="picker"></div>
   </header>
 
   <nav class="card views">
     <div class="group-label">Fly to</div>
-    <button data-view="overview">Overview</button>
-    <button data-view="needle">Space Needle</button>
-    <button data-view="westin">The Westin</button>
-    <button data-view="spheres">The Spheres</button>
-    <button data-view="osp">Sculpture Park</button>
-    <div class="group-label">Ride along</div>
-    <button data-follow="0"><i class="dot red"></i>Red train</button>
-    <button data-follow="1"><i class="dot blue"></i>Blue train</button>
-    <div class="group-label">Seattle</div>
+    <div id="views-list"></div>
+    <div id="follows"></div>
+    <div class="group-label" id="weather-label">Seattle</div>
     <button id="rain" class="toggle">Rain</button>
     <button id="live" class="toggle">Live sun</button>
+    <div id="place-toggles"></div>
     <div class="group-label">Look</div>
     <button id="tilt" class="toggle">Miniature blur</button>
     <button id="lbl" class="toggle on">Labels</button>

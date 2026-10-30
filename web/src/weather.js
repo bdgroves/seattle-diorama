@@ -2,7 +2,8 @@
 // real sun position for "live" mode.
 import * as THREE from 'three';
 
-export function buildRain(count = 9000) {
+// mode 'rain' (Seattle) or 'snow' (the Sierra)
+export function buildRain(count = 9000, mode = 'rain', scale = 1) {
   const pos = new Float32Array(count * 2 * 3);
   const seed = new Float32Array(count * 2);
   const end = new Float32Array(count * 2);
@@ -21,20 +22,22 @@ export function buildRain(count = 9000) {
   const uniforms = {
     uTime: { value: 0 }, uCenter: { value: new THREE.Vector3() },
     uSize: { value: 600 }, uHeight: { value: 260 }, uAmount: { value: 0 },
-    uColor: { value: new THREE.Color('#dfe8f2') },
+    uColor: { value: new THREE.Color('#dfe8f2') }, uSnow: { value: mode === 'snow' ? 1 : 0 },
   };
   const mat = new THREE.ShaderMaterial({
     uniforms, transparent: true, depthWrite: false,
     vertexShader: /* glsl */ `
       attribute float aSeed; attribute float aEnd;
-      uniform float uTime, uSize, uHeight, uAmount; uniform vec3 uCenter;
+      uniform float uTime, uSize, uHeight, uAmount, uSnow; uniform vec3 uCenter;
       varying float vA;
       void main() {
-        float fall = 70.0 + aSeed * 30.0;                // m/s, stylized
+        float fall = mix(70.0 + aSeed * 30.0, (5.0 + aSeed * 4.0) * uHeight / 260.0, uSnow);   // stylized
         float y = fract(position.y - uTime * fall / uHeight + aSeed * 7.0) * uHeight;
-        vec3 p = vec3(uCenter.x + position.x * uSize, y - aEnd * (5.0 + aSeed * 4.0), uCenter.z + position.z * uSize);
-        p.x += aEnd * 1.2;                               // a little wind from the south-west
-        vA = step(aSeed, uAmount * 0.32) * (0.08 + 0.3 * aEnd);
+        float len = mix(5.0 + aSeed * 4.0, uHeight * 0.006, uSnow);
+        vec3 p = vec3(uCenter.x + position.x * uSize, uCenter.y + y - aEnd * len, uCenter.z + position.z * uSize);
+        p.x += aEnd * mix(1.2, len * 0.6, uSnow);         // a little wind
+        p.x += uSnow * sin(uTime * 0.9 + aSeed * 40.0) * uHeight * 0.01;
+        vA = step(aSeed, uAmount * mix(0.32, 0.5, uSnow)) * mix(0.08 + 0.3 * aEnd, 0.85, uSnow);
         gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
       }`,
     fragmentShader: /* glsl */ `
@@ -49,17 +52,17 @@ export function buildRain(count = 9000) {
     update(t, target, zoom, amount, night) {
       uniforms.uTime.value = t;
       uniforms.uCenter.value.copy(target);
-      uniforms.uSize.value = THREE.MathUtils.clamp(900 / zoom, 70, 1100);
-      uniforms.uHeight.value = THREE.MathUtils.clamp(500 / zoom, 60, 600);
+      uniforms.uSize.value = THREE.MathUtils.clamp(900 * scale / zoom, 70, 1100 * scale);
+      uniforms.uHeight.value = THREE.MathUtils.clamp(500 * scale / zoom, 60, 600 * scale);
       uniforms.uAmount.value = amount;
-      uniforms.uColor.value.set(night > 0.5 ? '#8fa0bf' : '#e4ecf4');
+      uniforms.uColor.value.set(mode === 'snow' ? (night > 0.5 ? '#b8c4dc' : '#ffffff') : night > 0.5 ? '#8fa0bf' : '#e4ecf4');
       lines.visible = amount > 0.01;
     },
   };
 }
 
 // Solar position (NOAA simplified), returns compass azimuth + elevation in degrees.
-export function sunPosition(date, lat = 47.6205, lon = -122.3493) {
+export function sunPosition(date, lat = 47.6205, lon = -122.3493) {  // default: the Space Needle
   const rad = Math.PI / 180;
   const jd = date.getTime() / 86400000 + 2440587.5;
   const n = jd - 2451545.0;

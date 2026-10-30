@@ -97,3 +97,13 @@ body.night #toast { background: #e9b46a; color: #1a1d2b; }
 .views { max-height: calc(100vh - 40px); overflow-y: auto; scrollbar-width: none; }
 
 .label.minor b { font-size: 11px; padding: 4px 7px 3px; background: rgba(255,252,247,.82); }
+
+#views-list, #follows, #place-toggles { display: contents; }
+.picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.picker a { font-size: 12px; font-weight: 600; text-decoration: none; color: var(--ink); padding: 5px 10px; border-radius: 99px;
+  background: rgba(255,255,255,.55); border: 1px solid rgba(0,0,0,.08); transition: background .15s; }
+.picker a:hover { background: rgba(255,255,255,.95); }
+.picker a.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+body.night .picker a { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); }
+body.night .picker a.on { background: #e9b46a; color: #1a1d2b; }
+body:not([data-place="seattle"]) { --accent: #b5562f; }

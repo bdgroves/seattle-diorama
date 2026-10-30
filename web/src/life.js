@@ -73,10 +73,10 @@ export function buildTrees(flat) {
 }
 
 // ------------------------------------------------------------------ traffic
-const CAR_COLORS = ['#f2efe8', '#f2efe8', '#2b2f36', '#2b2f36', '#a9b1ba', '#c7372f',
+export const CAR_COLORS = ['#f2efe8', '#f2efe8', '#2b2f36', '#2b2f36', '#a9b1ba', '#c7372f',
   '#36659e', '#e0b13c', '#1f5b48', '#d8d2c4', '#6d7782', '#7a2f35'];
 
-function carGeometry() {
+export function carGeometry() {
   const body = new THREE.BoxGeometry(4.4, 1.0, 1.9).translate(0, 0.75, 0);
   const cab = new THREE.BoxGeometry(2.3, 0.75, 1.7).translate(-0.25, 1.62, 0);
   paint(body, [1, 1, 1]);
@@ -90,7 +90,7 @@ function busGeometry() {
   paint(band, [0.18, 0.22, 0.27]);
   return BGU.mergeGeometries([body.toNonIndexed(), band.toNonIndexed()]);
 }
-function lightsGeometry(len, w, h) {
+export function lightsGeometry(len, w, h) {
   const parts = [];
   for (const side of [-1, 1]) {
     const f = new THREE.BoxGeometry(0.2, 0.25, 0.4).translate(len / 2, h, side * (w / 2 - 0.3));
