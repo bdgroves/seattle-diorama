@@ -18,7 +18,7 @@ function catmull(p0, p1, p2, p3, t) {
  */
 export function loft(sections, { seg = 28, sub = 4, color, capStart = true, capEnd = true } = {}) {
   const S = [];
-  const keys = ['x', 'y', 'w', 'h', 'p', 'top'];
+  const keys = ['x', 'y', 'w', 'h', 'p', 'top', 'bot', 'z'];
   for (let i = 0; i < sections.length - 1; i++) {
     const a = sections[Math.max(0, i - 1)], b = sections[i], c = sections[i + 1], d = sections[Math.min(sections.length - 1, i + 2)];
     for (let k = 0; k < sub; k++) {
@@ -39,8 +39,9 @@ export function loft(sections, { seg = 28, sub = 4, color, capStart = true, capE
       const e = 2 / Math.max(1.2, s.p || 2);
       let yy = Math.sign(sn) * Math.abs(sn) ** e * s.h / 2;
       if (sn > 0) yy *= 1 - (s.top || 0) * 0.3;
+      else yy *= 1 + (s.bot || 0) * 0.12;          // a belly that hangs a little
       const zz = Math.sign(cs) * Math.abs(cs) ** e * s.w / 2;
-      const x = s.x, y = s.y + yy, z = zz;
+      const x = s.x, y = s.y + yy, z = zz + (s.z || 0);
       pos.push(x, y, z);
       uv.push(j / seg, si / (S.length - 1));
       if (color) { color(x, y, z, j / seg, c); col.push(c.r, c.g, c.b); }
@@ -204,3 +205,61 @@ export function drawEdelweiss(x, cx, cy, r, petals = 7) {
   x.beginPath(); x.arc(0, 0, r * 0.22, 0, Math.PI * 2); x.fill();
   x.restore();
 }
+
+/**
+ * A tileable normal map from a height painter: draw(ctx, w, h) paints grey
+ * heights (white = high); the normals come from the slope of the result.
+ */
+export function normalMap(size, draw, strength = 2, repeat = [1, 1]) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const x = c.getContext('2d');
+  x.fillStyle = '#808080'; x.fillRect(0, 0, size, size);
+  draw(x, size, size);
+  const src = x.getImageData(0, 0, size, size).data;
+  const out = x.createImageData(size, size);
+  const H = (i, j) => src[(((j + size) % size) * size + ((i + size) % size)) * 4] / 255;
+  for (let j = 0; j < size; j++) {
+    for (let i = 0; i < size; i++) {
+      const dx = (H(i + 1, j) - H(i - 1, j)) * strength, dy = (H(i, j + 1) - H(i, j - 1)) * strength;
+      const len = Math.hypot(dx, dy, 1);
+      const k = (j * size + i) * 4;
+      out.data[k] = (-dx / len * 0.5 + 0.5) * 255;
+      out.data[k + 1] = (dy / len * 0.5 + 0.5) * 255;
+      out.data[k + 2] = (1 / len * 0.5 + 0.5) * 255;
+      out.data[k + 3] = 255;
+    }
+  }
+  x.putImageData(out, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(...repeat);
+  return t;
+}
+
+// short hairs laid along v, a little wavy: the cow's coat
+export const furNormal = () => normalMap(256, (x, w, h) => {
+  for (let i = 0; i < 2600; i++) {
+    const px = Math.random() * w, py = Math.random() * h, len = 6 + Math.random() * 10, a = (Math.random() - 0.5) * 0.5;
+    const g = 90 + Math.random() * 120;
+    x.strokeStyle = `rgb(${g},${g},${g})`; x.lineWidth = 1 + Math.random();
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.sin(a) * len, py + Math.cos(a) * len); x.stroke();
+  }
+}, 3, [6, 10]);
+
+// plain woven cloth
+export const weaveNormal = () => normalMap(128, (x, w, h) => {
+  for (let j = 0; j < h; j += 4) for (let i = 0; i < w; i += 4) {
+    const up = ((i + j) / 4) % 2;
+    x.fillStyle = up ? '#a0a0a0' : '#606060'; x.fillRect(i, j, 4, 4);
+  }
+}, 1.2, [10, 10]);
+
+// knitted stockings: vertical ribs of little Vs
+export const knitNormal = () => normalMap(128, (x, w, h) => {
+  for (let i = 0; i < w; i += 8) for (let j = 0; j < h; j += 6) {
+    x.fillStyle = '#b0b0b0';
+    x.beginPath(); x.ellipse(i + 2, j + 3, 1.8, 3, 0.5, 0, Math.PI * 2); x.fill();
+    x.beginPath(); x.ellipse(i + 6, j + 3, 1.8, 3, -0.5, 0, Math.PI * 2); x.fill();
+  }
+}, 2, [8, 6]);

@@ -5,11 +5,11 @@
 //
 // Units are metres; the cow faces +x, stands on y = 0, z is her left/right.
 import * as THREE from 'three';
-import { loft, tube, tint, canvasTex, drawEdelweiss } from './geo.js';
+import { loft, tube, tint, canvasTex, drawEdelweiss, furNormal } from './geo.js';
 
 const BREEDS = {
   eringer: { coat: '#2b1f19', back: '#4a2f22', belly: '#22190f', muzzle: '#3a2c24', nose: '#1a1412', horn: '#e9dcc0', tip: '#2a2420', withers: 1.22, horns: 'lyre' },
-  brownswiss: { coat: '#8a7262', back: '#a48b78', belly: '#6c5748', muzzle: '#efe6d6', nose: '#2b2522', horn: '#e7dcc4', tip: '#3a332c', withers: 1.42, horns: 'short' },
+  brownswiss: { coat: '#76624f', back: '#8a7663', belly: '#5f4d3f', muzzle: '#efe6d6', nose: '#2b2522', horn: '#e7dcc4', tip: '#3a332c', withers: 1.42, horns: 'short' },
 };
 
 function strapTexture() {
@@ -65,27 +65,36 @@ export function buildCow({ breed = 'eringer', dressed = true, detail = 1 } = {})
   const S = B.withers / 1.22;                 // Brown Swiss stands taller
   const coat = new THREE.Color(B.coat), back = new THREE.Color(B.back), belly = new THREE.Color(B.belly), muzzle = new THREE.Color(B.muzzle);
   const cow = new THREE.Group();
-  const fur = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0 });
   const seg = Math.round(30 * detail);
   const lo = detail < 0.75;
+  // a short, velvety summer coat: sheen at grazing angles and fine hair in the normals
+  const fur = lo ? new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 })
+    : new THREE.MeshPhysicalMaterial({
+      vertexColors: true, roughness: 0.76, sheen: 0.55, sheenRoughness: 0.5,
+      sheenColor: new THREE.Color(B.back).lerp(new THREE.Color('#ffffff'), 0.12), normalMap: furNormal(), normalScale: new THREE.Vector2(0.45, 0.45),
+    });
 
   // ---- body, neck and head in one loft, nose to tail
   const sections = [
-    { x: -1.02, y: 1.03, w: 0.26, h: 0.34, p: 2.6 },
-    { x: -0.92, y: 1.0, w: 0.48, h: 0.58, p: 2.6, top: 0.6 },
-    { x: -0.7, y: 0.97, w: 0.6, h: 0.76, p: 2.8, top: 0.8 },
-    { x: -0.35, y: 0.93, w: 0.66, h: 0.84, p: 2.5, top: 0.6 },
-    { x: 0.05, y: 0.93, w: 0.68, h: 0.86, p: 2.4, top: 0.5 },
-    { x: 0.42, y: 0.97, w: 0.6, h: 0.84, p: 2.4, top: 0.5 },
-    { x: 0.66, y: 1.01, w: 0.44, h: 0.76, p: 2.2, top: 0.3 },     // shoulder and the dewlap
-    { x: 0.86, y: 1.08, w: 0.3, h: 0.52, p: 2.0 },
-    { x: 1.0, y: 1.16, w: 0.27, h: 0.4, p: 2.0 },
-    { x: 1.1, y: 1.2, w: 0.3, h: 0.36, p: 2.4 },                   // poll, between the horns
-    { x: 1.2, y: 1.17, w: 0.31, h: 0.34, p: 2.4 },                 // forehead, widest at the eyes
-    { x: 1.34, y: 1.07, w: 0.24, h: 0.3, p: 2.2 },
-    { x: 1.46, y: 0.98, w: 0.21, h: 0.24, p: 2.2 },
-    { x: 1.55, y: 0.95, w: 0.2, h: 0.2, p: 2.6 },                  // muzzle
-    { x: 1.6, y: 0.95, w: 0.16, h: 0.15, p: 2.6 },
+    { x: -1.06, y: 1.07, w: 0.2, h: 0.28, p: 2.4 },                         // tailhead and pin bones
+    { x: -0.98, y: 1.04, w: 0.42, h: 0.52, p: 2.6, top: 0.7 },
+    { x: -0.84, y: 1.0, w: 0.55, h: 0.7, p: 2.8, top: 0.85 },                 // the rump, square-topped
+    { x: -0.64, y: 0.98, w: 0.63, h: 0.8, p: 2.7, top: 0.9 },                 // hook bones
+    { x: -0.4, y: 0.95, w: 0.66, h: 0.86, p: 2.4, top: 0.7, bot: 0.3 },
+    { x: -0.1, y: 0.93, w: 0.71, h: 0.9, p: 2.3, top: 0.5, bot: 0.7 },        // a full belly of summer grass
+    { x: 0.2, y: 0.94, w: 0.69, h: 0.89, p: 2.3, top: 0.4, bot: 0.5 },
+    { x: 0.42, y: 0.98, w: 0.6, h: 0.86, p: 2.3, top: 0.3 },                  // chest and shoulders
+    { x: 0.6, y: 1.01, w: 0.47, h: 0.82, p: 2.2, top: 0.2, bot: 0.5 },        // brisket
+    { x: 0.74, y: 1.06, w: 0.36, h: 0.66, p: 2.1, bot: 0.8 },                 // the dewlap hangs under the neck
+    { x: 0.88, y: 1.12, w: 0.29, h: 0.5, p: 2.0, bot: 0.6 },
+    { x: 1.0, y: 1.17, w: 0.27, h: 0.4, p: 2.0 },
+    { x: 1.07, y: 1.21, w: 0.33, h: 0.35, p: 2.6, top: 0.2 },                 // poll, between the horns
+    { x: 1.17, y: 1.19, w: 0.35, h: 0.37, p: 2.5 },                           // the broad forehead, eyes
+    { x: 1.27, y: 1.12, w: 0.29, h: 0.35, p: 2.2, bot: 0.4 },                 // cheeks and jaw
+    { x: 1.38, y: 1.04, w: 0.22, h: 0.29, p: 2.1 },
+    { x: 1.48, y: 0.985, w: 0.2, h: 0.23, p: 2.2 },
+    { x: 1.56, y: 0.955, w: 0.215, h: 0.2, p: 2.8 },                          // the wide muzzle
+    { x: 1.61, y: 0.95, w: 0.18, h: 0.16, p: 2.8 },
   ].map((s) => ({ ...s, x: s.x * S, y: s.y * S, w: s.w * S, h: s.h * S }));
   const c1 = new THREE.Color();
   const colorFn = (ox, oy) => (x, y, z, u, out) => {
@@ -100,7 +109,7 @@ export function buildCow({ breed = 'eringer', dressed = true, detail = 1 } = {})
     c1.copy(out).offsetHSL(0, 0, n * 0.025);
     out.copy(c1);
   };
-  const body = loft(sections.slice(0, 9), {
+  const body = loft(sections.slice(0, 12), {
     seg, sub: Math.max(2, Math.round(4 * detail)), color: colorFn(0, 0),
   });
   const bodyMesh = new THREE.Mesh(body, fur);
@@ -114,20 +123,45 @@ export function buildCow({ breed = 'eringer', dressed = true, detail = 1 } = {})
   cow.add(head);
   const H = (x, y, z) => new THREE.Vector3(x * S - head.position.x, y * S - head.position.y, z * S);
   // the head is its own loft on a pivot at the poll, so it can nod and chew
-  const headSecs = [{ x: 0.93 * S, y: 1.13 * S, w: 0.28 * S, h: 0.42 * S, p: 2 }].concat(sections.slice(8))
+  const headSecs = [{ x: 0.93 * S, y: 1.13 * S, w: 0.28 * S, h: 0.42 * S, p: 2 }].concat(sections.slice(11))
     .map((q) => ({ ...q, x: q.x - head.position.x, y: q.y - head.position.y }));
   const headMesh = new THREE.Mesh(loft(headSecs, { seg, sub: Math.max(2, Math.round(4 * detail)), color: colorFn(head.position.x, head.position.y) }), fur);
   headMesh.castShadow = true;
   head.add(headMesh);
 
+  // bones under the hide: hooks and pins at the hips, the shoulder blades, the spine
+  const bump = (x, y, z, r, sx, sy, sz) => {
+    const g = new THREE.SphereGeometry(r * S, lo ? 8 : 16, lo ? 6 : 12).scale(sx, sy, sz);
+    const c = new THREE.Color(); colorFn(0, 0)(x * S, y * S, z * S, 0, c);
+    const m = new THREE.Mesh(tint(g, '#' + c.getHexString()), fur);
+    m.position.set(x * S, y * S, z * S);
+    m.castShadow = true;
+    cow.add(m);
+  };
+
   // ---- legs: forelegs straight, hind legs with the hock bent back
   const legCol = (dark) => (t, u, out) => out.copy(t < 0.06 ? new THREE.Color('#1a1714') : dark);
   const legs = [];
   for (const side of [-1, 1]) {
-    const fl = tube([[0.5, 0.0, 0.16], [0.49, 0.2, 0.16], [0.5, 0.45, 0.165], [0.5, 0.62, 0.15], [0.47, 0.98, 0.1]].map(([x, y, z]) => [x * S, y * S, z * side * S]),
-      [0.06, 0.05, 0.062, 0.078, 0.09].map((r) => r * S), { seg: Math.round(12 * detail), steps: Math.round(24 * detail), color: legCol(belly) });
-    const hl = tube([[-0.68, 0.0, 0.16], [-0.7, 0.2, 0.16], [-0.77, 0.46, 0.17], [-0.68, 0.66, 0.16], [-0.6, 0.98, 0.1]].map(([x, y, z]) => [x * S, y * S, z * side * S]),
-      [0.06, 0.05, 0.068, 0.1, 0.12].map((r) => r * S), { seg: Math.round(12 * detail), steps: Math.round(24 * detail), color: legCol(belly) });
+    const fl = tube([[0.5, 0.04, 0.16], [0.49, 0.18, 0.16], [0.5, 0.3, 0.162], [0.5, 0.42, 0.165], [0.5, 0.5, 0.165], [0.5, 0.64, 0.15], [0.47, 0.98, 0.1]].map(([x, y, z]) => [x * S, y * S, z * side * S]),
+      [0.052, 0.046, 0.05, 0.064, 0.058, 0.08, 0.1].map((r) => r * S), { seg: Math.round(14 * detail), steps: Math.round(30 * detail), color: legCol(belly) });
+    const hl = tube([[-0.69, 0.04, 0.16], [-0.7, 0.18, 0.16], [-0.73, 0.34, 0.165], [-0.78, 0.47, 0.17], [-0.74, 0.58, 0.168], [-0.68, 0.72, 0.16], [-0.6, 0.98, 0.1]].map(([x, y, z]) => [x * S, y * S, z * side * S]),
+      [0.052, 0.046, 0.05, 0.07, 0.085, 0.11, 0.13].map((r) => r * S), { seg: Math.round(14 * detail), steps: Math.round(30 * detail), color: legCol(belly) });
+    // split hooves: two glossy toes, and the dewclaws behind
+    const hoofMat = new THREE.MeshPhysicalMaterial({ color: '#1b1714', roughness: 0.35, clearcoat: 0.6, clearcoatRoughness: 0.4 });
+    for (const lx of [0.5, -0.69]) {
+      for (const toe of [-1, 1]) {
+        const h = new THREE.Mesh(new THREE.SphereGeometry(0.05 * S, lo ? 8 : 14, lo ? 6 : 10, 0, Math.PI * 2, 0, Math.PI * 0.55).scale(1.25, 1.2, 0.55), hoofMat);
+        h.position.set((lx + 0.02) * S, 0.0, (0.16 * side + toe * 0.023) * S);
+        h.castShadow = true;
+        cow.add(h);
+      }
+      for (const toe of [-1, 1]) {
+        const dc = new THREE.Mesh(new THREE.SphereGeometry(0.013 * S, 6, 4), hoofMat);
+        dc.position.set((lx - 0.045) * S, 0.1 * S, (0.16 * side + toe * 0.02) * S);
+        cow.add(dc);
+      }
+    }
     for (const g of [fl, hl]) {
       const m = new THREE.Mesh(g, fur);
       m.castShadow = true;
@@ -148,7 +182,24 @@ export function buildCow({ breed = 'eringer', dressed = true, detail = 1 } = {})
   }
 
   // ---- eyes, nostrils, ears, horns (on the head pivot)
-  const eyeMat = new THREE.MeshStandardMaterial({ color: '#0d0a09', roughness: 0.15, metalness: 0.1 });
+  const eyeMat = new THREE.MeshPhysicalMaterial({ color: '#160d09', roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.03 });
+  // the wet, dark nose pad and the line of the mouth
+  const nosePad = new THREE.Mesh(new THREE.SphereGeometry(0.1 * S, lo ? 10 : 24, lo ? 8 : 16).scale(0.42, 0.62, 1.0),
+    new THREE.MeshPhysicalMaterial({ color: B.nose, roughness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.25 }));
+  nosePad.position.copy(H(1.6, 0.96, 0));
+  head.add(nosePad);
+  const mouthLine = tube([H(1.57, 0.895, -0.08), H(1.63, 0.9, 0), H(1.57, 0.895, 0.08)], [0.006 * S, 0.007 * S, 0.006 * S], { seg: 6, steps: 10 });
+  head.add(new THREE.Mesh(mouthLine, new THREE.MeshStandardMaterial({ color: '#120d0b', roughness: 0.6 })));
+  if (breed === 'eringer') {
+    // the Eringer's curly forelock between the horns
+    for (let k = 0; k < (lo ? 6 : 16); k++) {
+      const a = k * 2.399, r = 0.035 + (k % 4) * 0.012;
+      const curl = new THREE.Mesh(new THREE.SphereGeometry(0.022 * S, 8, 6), fur);
+      curl.geometry = tint(curl.geometry, B.coat);
+      curl.position.copy(H(1.12 + Math.sin(a) * r * 0.6, 1.36 + Math.cos(a) * r * 0.25, Math.cos(a) * r));
+      head.add(curl);
+    }
+  }
   for (const side of [-1, 1]) {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03 * S, 12, 8), eyeMat);
     eye.position.copy(H(1.27, 1.22, 0.14 * side));
@@ -157,13 +208,14 @@ export function buildCow({ breed = 'eringer', dressed = true, detail = 1 } = {})
     lid.geometry = tint(lid.geometry, B.coat);
     lid.position.copy(eye.position); lid.rotation.z = -0.3;
     head.add(lid);
-    const nostril = new THREE.Mesh(new THREE.SphereGeometry(0.022 * S, 8, 6).scale(0.6, 1, 1), new THREE.MeshStandardMaterial({ color: B.nose, roughness: 0.4 }));
-    nostril.position.copy(H(1.6, 0.97, 0.045 * side));
+    const nostril = new THREE.Mesh(new THREE.SphereGeometry(0.02 * S, 10, 8).scale(0.5, 1.15, 0.8), new THREE.MeshStandardMaterial({ color: '#080605', roughness: 0.9 }));
+    nostril.position.copy(H(1.638, 0.965, 0.042 * side));
+    nostril.rotation.x = side * 0.5;
     head.add(nostril);
     // ears: a cupped leaf with a pink lining, sticking out under the horns
-    const earG = new THREE.SphereGeometry(0.1 * S, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.6).scale(0.45, 0.2, 1.0);
+    const earG = new THREE.SphereGeometry(0.12 * S, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.6).scale(0.42, 0.22, 1.0);
     const ear = new THREE.Mesh(tint(earG, B.coat), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide }));
-    ear.position.copy(H(1.1, 1.24, 0.24 * side));
+    ear.position.copy(H(1.1, 1.25, 0.27 * side));
     ear.rotation.set(side * 0.3, 0, side * -0.2);
     head.add(ear);
     const lining = new THREE.Mesh(new THREE.SphereGeometry(0.075 * S, 12, 6, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(0.35, 0.12, 0.85), new THREE.MeshStandardMaterial({ color: '#c9928a', roughness: 0.8 }));
@@ -188,9 +240,18 @@ export function buildCow({ breed = 'eringer', dressed = true, detail = 1 } = {})
   const tailG = tube([[0, 0, 0], [-0.06, -0.12, 0], [-0.08, -0.4, 0], [-0.06, -0.62, 0]].map(([x, y, z]) => [x * S, y * S, z * S]), [0.035, 0.025, 0.02, 0.018].map((r) => r * S),
     { seg: 8, steps: 18, color: (t, u, out) => out.copy(coat) });
   tailPivot.add(new THREE.Mesh(tailG, fur));
-  const tuft = new THREE.Mesh(new THREE.SphereGeometry(0.06 * S, 10, 8).scale(0.8, 1.9, 0.8), new THREE.MeshStandardMaterial({ color: '#15100d', roughness: 0.95 }));
-  tuft.position.set(-0.06 * S, -0.72 * S, 0);
-  tailPivot.add(tuft);
+  // the switch: a brush of long dark hairs
+  const hairMat = new THREE.MeshStandardMaterial({ color: '#15100d', roughness: 0.9 });
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.045 * S, 10, 8).scale(0.8, 1.8, 0.8), hairMat);
+  core.position.set(-0.06 * S, -0.7 * S, 0);
+  tailPivot.add(core);
+  for (let k = 0; k < (lo ? 0 : 26); k++) {
+    const a = k * 2.399, r = 0.012 + (k % 5) * 0.006;
+    const strand = new THREE.Mesh(new THREE.ConeGeometry(0.012 * S, (0.2 + (k % 3) * 0.05) * S, 4).translate(0, -(0.1 + (k % 3) * 0.025) * S, 0), hairMat);
+    strand.position.set((-0.06 + Math.cos(a) * r) * S, -0.64 * S, Math.sin(a) * r * S);
+    strand.rotation.set(Math.sin(a) * 0.15, 0, Math.cos(a) * 0.15);
+    tailPivot.add(strand);
+  }
 
   // ---- an ordinary bell on a plain strap, for every cow
   const neck = new THREE.Group();

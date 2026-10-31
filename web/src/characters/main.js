@@ -5,6 +5,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { buildCow } from './cow.js';
 import { buildAlphornist } from './alphorn.js';
 import { canvasTex, drawEdelweiss } from './geo.js';
@@ -14,7 +18,7 @@ const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: params.has('still') });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = params.get('ao') === '0' ? THREE.PCFShadowMap : THREE.VSMShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 const scene = new THREE.Scene();
@@ -93,7 +97,7 @@ sun.position.set(6, 11, 4);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.camera.left = -7; sun.shadow.camera.right = 7; sun.shadow.camera.top = 7; sun.shadow.camera.bottom = -7;
-sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+sun.shadow.bias = -0.0002; sun.shadow.normalBias = 0.01; sun.shadow.radius = 6; sun.shadow.blurSamples = 16;
 scene.add(sun);
 
 // ---- the meadow: a round sod with a cut edge, grass and alpine flowers
@@ -305,9 +309,19 @@ if (params.has('cam')) {
   camera.position.set(a, b, c); controls.target.set(d, e, f); controls.update();
 }
 
+// ambient occlusion: the soft contact shadows under the bell, in the folds and where hoof meets grass
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const gtao = new GTAOPass(scene, camera, innerWidth, innerHeight);
+gtao.updateGtaoMaterial({ radius: 0.35, distanceExponent: 1.5, thickness: 1.2, scale: 1.0, samples: 16 });
+gtao.blendIntensity = 0.9;
+if (params.get('ao') !== '0') composer.addPass(gtao);
+composer.addPass(new OutputPass());
+
 function resize() {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
+  composer.setSize(w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
@@ -327,7 +341,7 @@ renderer.setAnimationLoop(() => {
   cow.userData.animate(t, bellHit);
   player.userData.animate(t, playing);
   controls.update();
-  renderer.render(scene, camera);
+  composer.render();
   if (stillFrames && ++frames > stillFrames) { renderer.setAnimationLoop(null); document.body.classList.add('still-done'); }
 });
 document.body.classList.add('ready');
