@@ -1,0 +1,42 @@
+name: P4896 survey (one-off)
+on:
+  push:
+    branches: [p4896-survey]
+permissions:
+  contents: write
+jobs:
+  survey:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every Wikidata item with a 3D model (P4896)
+        run: |
+          python3 - <<'PY'
+          import json, urllib.parse, urllib.request
+          Q = """SELECT ?i ?l ?m ?c ?country ?type WHERE {
+            ?i wdt:P4896 ?m .
+            OPTIONAL { ?i wdt:P625 ?c }
+            OPTIONAL { ?i wdt:P17 ?k . ?k rdfs:label ?country FILTER(lang(?country)="en") }
+            OPTIONAL { ?i wdt:P31 ?t . ?t rdfs:label ?type FILTER(lang(?type)="en") }
+            OPTIONAL { ?i rdfs:label ?l FILTER(lang(?l)="en") }
+          }"""
+          url = "https://query.wikidata.org/sparql?format=json&query=" + urllib.parse.quote(Q)
+          req = urllib.request.Request(url, headers={"User-Agent": "seattle-diorama/0.1 (https://github.com/bdgroves/seattle-diorama)"})
+          rows = json.load(urllib.request.urlopen(req, timeout=60))["results"]["bindings"]
+          out = {}
+          for r in rows:
+              q = r["i"]["value"].rsplit("/", 1)[1]
+              o = out.setdefault(q, {"q": q, "label": r.get("l", {}).get("value", ""), "models": set(), "coord": r.get("c", {}).get("value"),
+                                     "country": set(), "type": set()})
+              o["models"].add(urllib.parse.unquote(r["m"]["value"].rsplit("/", 1)[1]))
+              if "country" in r: o["country"].add(r["country"]["value"])
+              if "type" in r: o["type"].add(r["type"]["value"])
+          items = [{**o, "models": sorted(o["models"]), "country": sorted(o["country"]), "type": sorted(o["type"])} for o in out.values()]
+          items.sort(key=lambda o: (o["country"][:1], o["label"]))
+          json.dump(items, open("docs/p4896-survey.json", "w"), indent=1, ensure_ascii=False)
+          print(len(items), "items;", sum(1 for o in items if o["coord"]), "with coordinates")
+          PY
+      - run: |
+          git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/p4896-survey.json && git commit -q -m "survey [skip ci]" && git push -q
