@@ -1,0 +1,671 @@
+place	qid	osm	name	model
+seattle	Q23130848	node/2561809364	Chief Seattle	
+seattle	Q65074442	node/3211770167	Farmer's Pole	
+seattle	Q65074451	node/3211770169	Untitled Totem Pole	
+seattle	Q110995698	node/3211770172	Angie's Umbrella	
+seattle	Q23135914	node/3211770174	Governor John Harte Mcgraw	
+seattle	Q15264048	node/3211770187	Olympic Iliad	
+seattle	Q113229944	node/3211770192	Seattle Center Totem	
+seattle	Q123143904	node/3211770193	Moses	
+seattle	Q118187020	node/3211770208	Neototems	
+seattle	Q123125168	node/3211770210	Fountain Of Creation	
+seattle	Q123143932	node/3211770223	Fountain Of The Northwest	
+seattle	Q16983918	node/3559896932	Rachel the Piggy Bank	
+seattle	Q28402439	node/3662141798	Bunyon's Chess	
+seattle	Q28154481	node/3662141799	Eye Benches I, II, and III	
+seattle	Q28446601	node/3662141802	Perre’s Ventaglio III	
+seattle	Q28446575	node/3662141803	Persephone Unbound	
+seattle	Q22952147	node/3662141806	Seattle Cloud Cover	
+seattle	Q28446574	node/3662141807	Sky Landscape I	
+seattle	Q16764818	node/3662141808	Split	
+seattle	Q28451801	node/3662141809	Stinger	
+seattle	Q5324996	node/3662141811	The Eagle	
+seattle	Q28451812	node/3662141814	Untitled	
+seattle	Q28451772	node/3662141815	Wake	
+seattle	Q23007433	node/3662383773	Father and Son	
+seattle	Q115780307	node/4886750792	Giant Popsicle	
+seattle	Q28446552	node/5067544621	Curve XXIV	
+seattle	Q60785759	node/6140930665	Chris Cornell in Performance	
+seattle	Q111939809	node/7917827840	Mirall	
+seattle	Q111169466	node/8442509712	Sonic Bloom	
+seattle	Q113245162	node/8474659235	Echo	
+seattle	Q136198372	node/8533332630	Typewriter Eraser, Scale X	
+seattle	Q118135278	node/9757936302	Pillar Arc	
+seattle	Q3044487	way/4755066	Seattle Center	
+seattle	Q7988988	way/8097291	Westlake Park	
+seattle	Q5317	way/12903132	Space Needle	MODEL
+seattle	Q7972232	way/13866261	Seattle Convention Center Arch	
+seattle	Q7926370	way/14026690	Victor Steinbrueck Park	
+seattle	Q977529	way/25123756	Climate Pledge Arena	
+seattle	Q5259218	way/25788265	Denny Park	
+seattle	Q7284914	way/35824879	Rainier Tower	
+seattle	Q5430600	way/35824976	Fairmont Olympic Hotel	
+seattle	Q7122625	way/36869313	Pacific Place	
+seattle	Q7988968	way/36869314	Westlake Center	
+seattle	Q21016291	way/36975035	United States Courthouse	
+seattle	Q115213678	way/37585125	Skinner Building	
+seattle	Q111393880	way/41842296	Hotel Andra	
+seattle	Q7442146	way/56629825	Seattle Opera at the Center	
+seattle	Q21016048	way/57883629	McGraw Square	
+seattle	Q115901908	way/68666652	Kobe Friendship Bell	
+seattle	Q3892069	way/69273374	Benaroya Hall	
+seattle	Q16903149	way/75978288	Westlake Square	
+seattle	Q24192499	way/94026095	Helios	
+seattle	Q7802152	way/101677291	Tilikum Place	
+seattle	Q5968781	way/107124282	1200 Fifth	
+seattle	Q55167531	way/131705785	Plymouth Congregational Church	
+seattle	Q5163308	way/148411844	Amazon.com Fiona	
+seattle	Q21015941	way/160311202	Cirrus	
+seattle	Q11705574	way/161070746	McCaw Hall	
+seattle	Q7442163	way/161070747	Seattle Repertory Theatre	
+seattle	Q1384356	way/161587742	MoPOP: Museum of Pop Culture	
+seattle	Q2618100	way/161609433	Seattle Center	
+seattle	Q15885443	way/172851168	The Cosmopolitan	
+seattle	Q14713699	way/175464262	Insignia	
+seattle	Q115111291	way/184870424	MarketFront	
+seattle	Q131747307	way/189283343	Josephinum	
+seattle	Q4560484	way/203321142	Amazon.com Blackfoot	
+seattle	Q114854470	way/206858876	Corner Market	
+seattle	Q114857469	way/206858888	Sanitary Public Market	
+seattle	Q111393881	way/206883222	Thompson Seattle	
+seattle	Q7442112	way/221921002	Seattle Housing Authority	
+seattle	Q15211071	way/223171639	The Cobb Apartments	
+seattle	Q7258933	way/223171640	Puget Sound Plaza	
+seattle	Q14512107	way/223783257	Neukom Vivarium	
+seattle	Q4883107	way/223921993	Bell Apartments	
+seattle	Q111393882	way/223927903	Seattle Marriott Waterfront	
+seattle	Q5476220	way/223927905	Fourth and Blanchard Building	
+seattle	Q54449361	way/223927929	Main Campus Center	
+seattle	Q7988917	way/223928497	Westin Building	
+seattle	Q118966657	way/223929028	El Rio	
+seattle	Q7806556	way/223937026	Times Square Building	
+seattle	Q4808080	way/223937029	Aspira	
+seattle	Q119240994	way/231361932	Hahn Building	
+seattle	Q105972687	way/231361935	Palihotel	
+seattle	Q221718	way/231664575	The Seattle Times	
+seattle	Q137262635	way/231761516	Church of Scientology of Washington State	
+seattle	Q43306738	way/231761619	SIFF Cinema Uptown	
+seattle	Q115924160	way/231764919	Seattle Center Armory	
+seattle	Q2935180	way/232076568	Worldmark Seattle - The Camlin	
+seattle	Q111393864	way/232076569	The Paramount Hotel	
+seattle	Q28125023	way/232076576	Medical Dental Building	
+seattle	Q2935180	way/232076578		
+seattle	Q115109513	way/232078056	Sheraton Seattle	
+seattle	Q7971664	way/232079314	Washington Athletic Club Building	
+seattle	Q7889143	way/232079590	Olympic Tower	
+seattle	Q24192502	way/240455074	Tower 12	
+seattle	Q5447429	way/240586483	Fifteen Twenty-One Second Avenue	
+seattle	Q5031639	way/240736161	West Edge Tower	
+seattle	Q7924349	way/241729443	Via6	
+seattle	Q113427904	way/254046496	Adjacent, Against, Upon	
+seattle	Q56426826	way/331163045	Mayflower Park Hotel Seattle	
+seattle	Q7273149	way/331281876	Qwest Plaza	
+seattle	Q7087125	way/331281878	Olive 8	
+seattle	Q24068107	way/331281882	Westin Seattle North Tower	
+seattle	Q7988924	way/331291911	The Westin Seattle	
+seattle	Q15885484	way/331309048	Escala	
+seattle	Q5599688	way/334242083	BNSF Scenic Subdivision	
+seattle	Q5599688	way/334242084	BNSF Scenic Subdivision	
+seattle	Q113245251	way/358980801	Coast Seattle Downtown	
+seattle	Q7442077	way/360389738	SIFF Cinema Downtown	
+seattle	Q24192489	way/360389739	Arrivé	
+seattle	Q4677537	way/360585007	Industrious Building	
+seattle	Q5003036	way/360950559		
+seattle	Q4708626	way/360950561	Alaska Trade Building	
+seattle	Q4549639	way/363036782	1411 Fourth Avenue	
+seattle	Q60755184	way/363036786	Fourth and Pike Building	
+seattle	Q5145768	way/363046829	Coliseum Theater Building	
+seattle	Q15222602	way/363046830	520 Pike Tower	
+seattle	Q116005984	way/363046832	Sixth and Pine Building	
+seattle	Q111393868	way/363046838	Hotel Theodore	
+seattle	Q28125017	way/363234206	Hull Building	
+seattle	Q21015905	way/379950575	Amazon.com Doppler	
+seattle	Q3848341	way/394955903	Pacific Science Center	
+seattle	Q28035324	way/397007177	Barnes Building	
+seattle	Q30645889	way/397007178	Eitel Building	
+seattle	Q7762875	way/397007181	The Seattle School of Theology and Psychology	
+seattle	Q3066771	way/397021768	U.S. Bank Centre	
+seattle	Q21015906	way/398816073	Amazon.com Day 1	
+seattle	Q24192500	way/400874898	Kiara	
+seattle	Q137782393	way/417682780	KOMO Plaza East	
+seattle	Q137782390	way/417682781	KOMO Plaza West	
+seattle	Q115617543	way/440107703	Consulate General of the Republic of Korea	
+seattle	Q19866508	way/460084962	Bell Street Park	
+seattle	Q7971664	way/470300696	Washington Athletic Club Annex	
+seattle	Q28452046	way/490586222	Stratus	
+seattle	Q29641856	way/492248771	McKenzie Apartments	
+seattle	Q4644481	way/520654959	Hyatt Regency Seattle	
+seattle	Q65052357	way/584763258	Amazon.com re:Invent	
+seattle	Q85809072	way/613645323	The Modern	
+seattle	Q4708670	way/635718965	State Route 99 Tunnel	
+seattle	Q4708670	way/635762265	State Route 99 Tunnel	
+seattle	Q48840683	way/682299956	Onni South Lake Union	
+seattle	Q30634662	way/686348108	Rainier Square	
+seattle	Q55635196	way/688082629	The Emerald	
+seattle	Q56276836	way/764642522	SPIRE	
+seattle	Q48596158	way/868099742	Amazon.com The Spheres	
+seattle	Q106836097	way/891333606	REN	
+seattle	Q115210417	way/1190291980	Triangle Building	
+seattle	Q125420948	way/1271653800	Leland Hotel	
+seattle	Q7974088	way/1334956995	Waterfront Park	
+seattle	Q123143817	way/1362384591	Grass Blades	
+seattle	Q6478207	relation/907023	Lake Union Park	
+seattle	Q16901536	relation/3108546	The Terry Thomas	
+seattle	Q3049315	relation/3115499	Union Square	
+seattle	Q6948614	relation/3148301	Myrtle Edwards Park	
+seattle	Q7731577	relation/3156102	The Edgewater Hotel	
+seattle	Q7089122	relation/7406606	Olympic Sculpture Park	
+seattle	Q137782345	relation/20085315		
+amalfi	Q72672	node/68580764	Sorrento	
+amalfi	Q72128	node/68580840	Gragnano	
+amalfi	Q6737	node/68581140	Castellammare di Stabia	
+amalfi	Q72732	node/68581417	Vico Equense	
+amalfi	Q30029287	node/68581547	Ravello	
+amalfi	Q80948	node/68582243	Furore	
+amalfi	Q81345	node/68582404	Positano	
+amalfi	Q18436984	node/327043035	Moiano	
+amalfi	Q3850928	node/327043211	Massaquano	
+amalfi	Q18437113	node/327043243	Ticciano	
+amalfi	Q1863418	node/327043913	Seiano	
+amalfi	Q18436991	node/327043920	Montechiaro	
+amalfi	Q605185	node/399395084	Grotta Azzurra	
+amalfi	Q114677557	node/474146301	Bomerano	
+amalfi	Q1636698	node/474146305	Nocelle	
+amalfi	Q18437580	node/716484907	Pendolo	
+amalfi	Q3777058	node/897148313	Grotta dello Smeraldo	
+amalfi	Q24073463	node/1126315988	Hilton Sorrento Palace	
+amalfi	Q3777074	node/1332692281	Grotta di Matermania	
+amalfi	Q106618924	node/1342102326	Regina Giovanna Roman villa	
+amalfi	Q3322117	node/1474276095	Monte Solaro	
+amalfi	Q18437164	node/1496265400	Arienzo	
+amalfi	Q31640324	node/1632767215	Molare	
+amalfi	Q126287919	node/1729435213	Sant'Antonino Abate	
+amalfi	Q1423580	node/1753053172	Pogerola	
+amalfi	Q24248594	node/1760429121	Lone	
+amalfi	Q7930480	node/1783004798	Villa Marittima Romana	
+amalfi	Q18437643	node/1931968668	Pontone	
+amalfi	Q31640310	node/2557220437	Monte Vico Alvano	
+amalfi	Q31221871	node/2557224513	Monte Crocione	
+amalfi	Q31646001	node/2557274469	Monte Cervigliano	
+amalfi	Q3662623	node/3096554314	Castello di Gragnano	
+amalfi	Q3623653	node/3110207850	Arola	
+amalfi	Q31222513	node/3140623198	Colle Sant'Angelo	
+amalfi	Q18436948	node/3195062694	Gesini	
+amalfi	Q16620301	node/3286672859	Vallone dei Mulini	
+amalfi	Q18437084	node/3444413314	Santa Maria del Castello	
+amalfi	Q18437062	node/3461320579	Resicco	
+amalfi	Q18437262	node/3589359494	Casa Vitagliano	
+amalfi	Q18437389	node/3589359495	Ferriera	
+amalfi	Q18437247	node/3589359497	Carbonaro	
+amalfi	Q18437194	node/3589359498	Bolviso	
+amalfi	Q69290795	node/3693555123	Grotta di Sant'Alfonso	
+amalfi	Q1630997	node/4195537203	La Palma	
+amalfi	Q18437026	node/4197416335	Patierno	
+amalfi	Q67369694	node/4294229387	Torquato Tasso	
+amalfi	Q28146357	node/5144799028	Grand Hotel Cocumella	
+amalfi	Q5610788	node/5357205306	Grotta Bianca	
+amalfi	Q126196003	node/6015616086	Statua di Cerere	
+amalfi	Q2860643	node/7478376279	Arco Naturale	
+amalfi	Q126287921	node/8610423339	Sant'Antonino Abate	
+amalfi	Q18436868	node/9492910178	Antignano	
+amalfi	Q21157469	way/47887400	Collegiata di Santa Maria a Mare	
+amalfi	Q3952601	way/51929738	Scoglio Vetara	
+amalfi	Q3952550	way/51929739	Scoglio Isca	
+amalfi	Q3792695	way/51929746	Il Gallo Lungo	
+amalfi	Q3820702	way/51929747	La Castelluccia	
+amalfi	Q49650156	way/51929748	La Rotonda	
+amalfi	Q3952617	way/51930083	Scoglio del Monacone	
+amalfi	Q141808264	way/56472778	Piazza della Vittoria	
+amalfi	Q118540609	way/99185701	Santa Maria del Lacco	
+amalfi	Q1246201	way/99684738	Duomo di Ravello	
+amalfi	Q2165460	way/118497544	Villa Jovis	
+amalfi	Q141894640	way/118500512	Via Tragara	
+amalfi	Q18042989	way/121670306	Collegiata di Santa Maria Maddalena	
+amalfi	Q3952626	way/149029179	Scoglio della Margherita	
+amalfi	Q21190227	way/150189771	Strada Statale 145var Galleria Santa Maria di Pozzano	
+amalfi	Q600863	way/161090383	Giardini di Augusto	
+amalfi	Q24933352	way/166002162	Basilica di Santa Trofimena	
+amalfi	Q3952606	way/173850330	Scoglio a Penna	
+amalfi	Q107610768	way/191254170	Ponte di Furore	
+amalfi	Q5594636	way/193761177	Grand Hotel Quisisana	
+amalfi	Q73489106	way/193805888	Giardini Palazzo Mezzacapo	
+amalfi	Q1094532	way/207969354	Piazza San Giovanni del Toro	
+amalfi	Q641244	way/215288585	Villa Rufolo	
+amalfi	Q113482177	way/216723333	Duomo di San Lorenzo	
+amalfi	Q690629	way/227421961	Auditorium Oscar Niemeyer	
+amalfi	Q55188686	way/237087829	Chiesa di Maria Santissima Annunziata	
+amalfi	Q3895397	way/239182636	Parco Filosofico	
+amalfi	Q133279784	way/239187265	Parco Villa San Michele	
+amalfi	Q3731368	way/239205591	Santa Maria a Cetrella	
+amalfi	Q7930442	way/239992949	Villa Monacone	
+amalfi	Q118539168	way/254643204	Basilica del Crocifisso	
+amalfi	Q686306	way/254643211	Duomo di Amalfi	
+amalfi	Q3673565	way/291155789	Chisa di Santa Maria a Gradillo	
+amalfi	Q21190227	way/292998184	Strada Statale 145var Galleria Santa Maria di Pozzano	
+amalfi	Q21190227	way/293024824	Strada Statale 145var Galleria Santa Maria di Pozzano	
+amalfi	Q3655748	way/301575796	Fincantieri	
+amalfi	Q2068666	way/308897321	Cattedrale dei Santi Filippo e Giacomo	
+amalfi	Q3950023	way/311133525	Santuario di San Michele Arcangelo	
+amalfi	Q3952578	way/323891751	Scoglio Pila Nova	
+amalfi	Q3952592	way/323891756	Scoglio Scruopolo	
+amalfi	Q3952603	way/323891760	Scoglio Vervece	
+amalfi	Q3952620	way/323891766	Scoglio dell'Isca	
+amalfi	Q124360007	way/328880851		
+amalfi	Q118539196	way/332747664	Madonna Delle Grazie o Del Latte	
+amalfi	Q118539190	way/332747666	Chiesa di Santa Marina	
+amalfi	Q102259451	way/334650061	Castello di San Nicola de Thoroplano	
+amalfi	Q27989585	way/336436895	Palazzo San Benedetto	
+amalfi	Q3868061	way/337010521	Museo della Carta	
+amalfi	Q3670060	way/342979603	San Francesco	
+amalfi	Q3670060	way/342979608	Chiesa di San Francesco	
+amalfi	Q25299985	way/361768675	Chiesa San Francisco	
+amalfi	Q3635761	way/419353570	Basilica Pontificia di Santa Maria del Lauro	
+amalfi	Q118539678	way/419796395	San Trifone	
+amalfi	Q133037827	way/423466483		
+amalfi	Q828374	way/423466520	Villa Cimbrone	
+amalfi	Q17622416	way/431723751	Basilica di San Michele Arcangelo	
+amalfi	Q126210708	way/433111469	Temple of Bacchus	
+amalfi	Q113482433	way/481396774	Chiesa di San Gennaro	
+amalfi	Q5911334	way/484294117	Belmond Hotel Caruso	
+amalfi	Q118539199	way/487964977	Chiesa di Fuondi	
+amalfi	Q32125667	way/534897424	Fortino di Mesola	
+amalfi	Q49537752	way/554931188	Parco Astarita	
+amalfi	Q27998492	way/555947804	Villa Damecuta	
+amalfi	Q3902350	way/556321708	Piazza Umberto Primo	
+amalfi	Q4010756	way/556321710	Via Vittorio Emanuele III	
+amalfi	Q116766944	way/660515465	Castello di Montalto	
+amalfi	Q3969749	way/734666037	Ex Stazione di Gragnano	
+amalfi	Q16539810	way/734666311	Chiesa del Corpus Domini	
+amalfi	Q3949614	way/734891754	Santuario del Sacro Cuore	
+amalfi	Q3672926	way/734891770	Chiesa di Santa Caterina d'Alessandria	
+amalfi	Q3868341	way/734891806	Museo Diocesano Sorrentino Stabiese	
+amalfi	Q3673812	way/734891812	Chiesa di Santa Maria dell'Orto	
+amalfi	Q3669353	way/734891818	Chiesa di Maria Santissima del Carmine	
+amalfi	Q3668646	way/734893266	Chiesa del Santissimo Crocifisso e Anime del Purgatorio	
+amalfi	Q3669319	way/734893276	Chiesa di Gesù e Maria	
+amalfi	Q24884910	way/734893359	Chiesa di San Bartolomeo	
+amalfi	Q3674403	way/734893459	Chiesa Santa Maria della Pace	
+amalfi	Q3670265	way/734893677	San Giacomo Maggiore	
+amalfi	Q3674080	way/734893728	Chiesa di Santa Maria di Portosalvo	
+amalfi	Q3669280	way/734893796	Chiesa dello Spirito Santo	
+amalfi	Q3950080	way/734894226	Santuario di Santa Maria della Sanità	
+amalfi	Q3672813	way/734894257	Sant'Eustachio	
+amalfi	Q3931701	way/734894716	Reggia di Quisisana	
+amalfi	Q3671698	way/735366940	Chiesa di San Pietro Apostolo	
+amalfi	Q121887283	way/749057326	Chiesa di Sant'Andrea Apostolo	
+amalfi	Q30027348	way/749094005	Comune di Massa Lubrense	
+amalfi	Q16621409	way/749279348	Villa Fondi De Sangro	
+amalfi	Q3950064	way/749593643	Santuario di Santa Maria del Toro	
+amalfi	Q3662324	way/749593644	Castello Giusso	
+amalfi	Q3668104	way/749594078	Chiesa dei Santi Ciro e Giovanni	
+amalfi	Q133272344	way/751444893	San Michele	
+amalfi	Q1041718	way/751445120	Villa San Michele	
+amalfi	Q124152595	way/751445149	Cappella di San Michele	
+amalfi	Q2941392	way/751445563	Castello di Barbarossa	
+amalfi	Q16265674	way/751445628	Casa Rossa	
+amalfi	Q3674220	way/751445812	Chiesa di Santa Sofia	
+amalfi	Q372769	way/751447841	Faro di Punta Carena	
+amalfi	Q934070	way/752096878	Villa Lysis/Fersen	
+amalfi	Q3674275	way/752097559	Chiesa di Santo Stefano	
+amalfi	Q141806249	way/752097715	Chiesa Evangelica	
+amalfi	Q126325150	way/752097950	Villa Tragara	
+amalfi	Q2165447	way/752097981	Casa Malaparte	
+amalfi	Q4010756	way/752109769	Via Vittorio Emanuele terzo	
+amalfi	Q4010756	way/752109770	Via Vittorio Emanuele III	
+amalfi	Q3950102	way/752849450		
+amalfi	Q3949768	way/752849611	Santuario Madonna della Libera	
+amalfi	Q126195573	way/847520673	Terrazza dell’Infinito	
+amalfi	Q4008095	way/854998559	Valle dei Mulini	
+amalfi	Q16600417	way/971136781	Santuario della Madonna del Carmine	
+amalfi	Q103982731	way/988059340	Chiesa di Santa Maria delle Grazie	
+amalfi	Q5097168	way/990728502	Chiesa Santa Maria del Soccorso	
+amalfi	Q3668142	way/1008117806	Chiesa dei Santi Felice e Baccolo	
+amalfi	Q118539187	way/1008911289	Santa Maria dell'Assunta	
+amalfi	Q112018223	way/1024166199	Agriturismo del Sole	
+amalfi	Q69318795	way/1030979562	Villa romana Capo di Massa	
+amalfi	Q21190227	way/1036266260	Strada Statale 145var Galleria Santa Maria di Pozzano	
+amalfi	Q118540606	way/1072850445	Santi Filippo e Giacomo	
+amalfi	Q96177604	way/1080003444	Sedil Dominova	
+amalfi	Q17622423	way/1082944360	Chiesa Sant'Antonino	
+amalfi	Q141807605	way/1083984958	Villa Comunale "Salve D'Esposito"	
+amalfi	Q7414246	way/1085130511	Chiesa di San Giovanni Battista	
+amalfi	Q113482695	way/1085135077	Torre di Pogerola	
+amalfi	Q3673806	way/1123329190	Chiesa di Santa Maria dell'Assunta	
+amalfi	Q111133440	way/1128300840	Unconventional Sorrento Coast	
+amalfi	Q4010756	way/1253172476	Via Vittorio Emanuele III	
+amalfi	Q4010756	way/1253172477	Via Vittorio Emanuele III	
+amalfi	Q118539895	way/1255389038	Madonna Del Carmine	
+amalfi	Q131255438	way/1266458127	Ponte Orazio	
+amalfi	Q131255438	way/1334833354	Ponte Orazio	
+amalfi	Q124359505	way/1364076759	Torre Maggiore	
+amalfi	Q133159713	way/1364534343		
+amalfi	Q133042848	way/1364818048		
+amalfi	Q111518064	way/1366632348	San Salvatore de Birecto	
+amalfi	Q131627513	way/1367074758		
+amalfi	Q28670480	way/1431362689	Torre dello Ziro	
+amalfi	Q173292	relation/2675353	Capri	
+tuolumne	Q6521081	node/332597680	Lembert Dome	
+tuolumne	Q7234910	node/358795264	Pothole Dome	
+tuolumne	Q49064526	node/358795266	Puppy Dome	
+tuolumne	Q5430808	node/358795504	Fairview Dome	
+tuolumne	Q5052261	node/358796058	Cathedral Peak	
+tuolumne	Q49040091	node/358796117	Johnson Peak	
+tuolumne	Q27510721	node/358807653	Unicorn Peak	
+tuolumne	Q22350529	node/358809568	Medlicott Dome	
+tuolumne	Q117954360	node/842918931	Cathedral Pass	
+tuolumne	Q27670276	node/3529568867	Soda Springs	
+tuolumne	Q65118982	node/3653662037	Dozier Dome	
+tuolumne	Q118780175	node/4337957626	Mariuolumne Dome	
+tuolumne	Q65078918	node/4337957627	Drug Dome	
+tuolumne	Q65079814	node/4337957650	Lamb Dome	
+tuolumne	Q119627353	node/4337971977	Eichorn Pinnacle	
+tuolumne	Q118780130	node/4337980956	Dark Side Dome	
+tuolumne	Q65078647	node/4363563709	Dog Dome	
+tuolumne	Q22043993	node/5097050339	Daff Dome	
+tuolumne	Q121069464	node/5868916806	Echo Peak #8	
+tuolumne	Q121069480	node/5868916807	Echo Peak #9	
+tuolumne	Q121069443	node/5868916808	Echo Peak #7	
+tuolumne	Q121069422	node/5868916809	Echo Peak #6	
+tuolumne	Q121069182	node/8735080817	Echo Peak #0	
+tuolumne	Q121069144	node/8735080818	Echo Peak #1	
+tuolumne	Q121069204	node/8735080819	Echo Peak #2	
+tuolumne	Q121069235	node/8735080820	Echo Peak #2.5	
+tuolumne	Q120731257	node/8735080821	Echo Peak #3	
+tuolumne	Q121069320	node/8735080822	Echo Peak #5	
+tuolumne	Q119627331	node/10205442186	Wilts Col	
+tuolumne	Q65078961	node/10934216468	West Cottage Dome	
+tuolumne	Q65079064	node/10934216469	East Cottage Dome	
+tuolumne	Q65078063	node/10934216470	Doda Dome	
+tuolumne	Q65079258	node/10934216471	Hammer Dome	
+tuolumne	Q65119084	node/10934914352	Marmot Dome	
+tuolumne	Q49684829	node/11404642398	Cockscomb	
+tuolumne	Q123033808	way/30184793	Lower Cathedral Lake	
+tuolumne	Q123033899	way/30184862	Upper Cathedral Lake	
+tuolumne	Q15214442	way/39131384	Dog Lake	
+tuolumne	Q124331293	way/83473189	Lyell Fork	
+tuolumne	Q99688847	way/83473216	Tioga Road	
+tuolumne	Q49888201	way/83473618	Dana Fork	
+tuolumne	Q36663747	way/131358465	Yosemite Toulumne Meadows Visitor Center	
+tuolumne	Q27171950	way/131944786	Elizabeth Lake	
+tuolumne	Q19460725	way/176869646	Budd Lake	
+tuolumne	Q1848127	way/178424644	Parsons Memorial Lodge	
+tuolumne	Q99678037	way/227463320	Tuolumne Meadows Campground Reservation Office	
+tuolumne	Q99677931	way/236361478	Tuolumne Meadows Wilderness Center	
+tuolumne	Q49901050	way/288540395	Echo Creek	
+tuolumne	Q89916101	way/346414847	The McCauley Cabin	
+tuolumne	Q49876776	way/364809366	Cathedral Fork	
+tuolumne	Q49893710	way/407468244	Dingley Creek	
+tuolumne	Q49892597	way/407468462	Delaney Creek	
+tuolumne	Q96351691	way/524424732	Tuolumne Meadows Lodge	
+tuolumne	Q27597891	way/730195729	McGee Lake	
+tuolumne	Q6649774	way/955841314	Little Devils Postpile	
+tuolumne	Q99677713	way/1189849422	Tuolumne Meadows Ranger Station	
+tuolumne	Q7553192	way/1384392633	Soda Springs Cabin	
+tuolumne	Q2853813	relation/12774701	Tuolumne Meadows	
+yosemite	Q2433474	node/26637661	Tunnel View	
+yosemite	Q5195221	node/150946014	Curry Village	
+yosemite	Q2620166	node/243671668	Vernal Fall	
+yosemite	Q38586	node/243671720	Nevada Fall	
+yosemite	Q3108318	node/331507160	Glacier Point	
+yosemite	Q8055944	node/331742981	Yosemite Village	
+yosemite	Q49468391	node/358795502	Diving Board	
+yosemite	Q3593534	node/358795523	Happy Isles	
+yosemite	Q4416374	node/358795662	Sentinel Dome	
+yosemite	Q14683978	node/358795675	Sierra Point	
+yosemite	Q19600358	node/358795984	Basket Dome	
+yosemite	Q20714872	node/358796018	Mount Broderick	
+yosemite	Q49467948	node/358796056	Castle Cliffs	
+yosemite	Q8521240	node/358796151	Liberty Cap	
+yosemite	Q8520071	node/358796185	North Dome	
+yosemite	Q49471071	node/358796273	The Fissures	
+yosemite	Q49468239	node/358797439	Crocker Point	
+yosemite	Q27267334	node/358797548	Dewey Point	
+yosemite	Q49469363	node/358798483	Leaning Tower	
+yosemite	Q49470429	node/358799439	Rockslides	
+yosemite	Q49470811	node/358803115	Stanford Point	
+yosemite	Q49058453	node/358804036	Old Inspiration Point	
+yosemite	Q35723664	node/358805936	Ahwiyah Point	
+yosemite	Q35728899	node/358806153	Boundary Hill	
+yosemite	Q5609810	node/358806525	Grizzly Peak	
+yosemite	Q49051477	node/358806877	Moran Point	
+yosemite	Q7675044	node/358807521	Taft Point	
+yosemite	Q49086668	node/358807658	Union Point	
+yosemite	Q49476674	node/358833522	Camp Curry Historic District	
+yosemite	Q37588	node/773001756	Illilouette Fall	
+yosemite	Q121070621	node/1667696439	Inspiration Point	
+yosemite	Q26196531	node/1755671833	Washburn Point	
+yosemite	Q2360422	node/2169177764	Bridalveil Fall	
+yosemite	Q99517045	node/2360047421	Artist Point	
+yosemite	Q121070666	node/2360047429	Washburn Slide	
+yosemite	Q491677	node/2384221575	Middle Cascades	
+yosemite	Q38236	node/2389657960	Lehamite Falls	
+yosemite	Q491677	node/2389657981	Lower Yosemite Fall	
+yosemite	Q2982001	node/2389658050	Ribbon Fall	
+yosemite	Q7451320	node/2389658093	Sentinel Fall	
+yosemite	Q37590	node/2389658133	Silver Strand Falls	
+yosemite	Q37584	node/2389658166	Staircase Falls	
+yosemite	Q491677	node/2389658224	Upper Yosemite Fall	
+yosemite	Q49719399	node/3437766473	Fern Spring	
+yosemite	Q742576	node/3453503948	Lost Arrow Spire	
+yosemite	Q37586	node/4065344346	Royal Arch Cascade	
+yosemite	Q38239	node/4065345814	Snow Creek Falls	
+yosemite	Q96414296	node/4067953518	Washington Column	
+yosemite	Q118720505	node/4337985157	Split Pinnacle	
+yosemite	Q925252	node/4338669222	Half Dome	
+yosemite	Q37385	node/4848694621	Horsetail Fall	
+yosemite	Q1124852	node/6256710614	El Capitan	
+yosemite	Q121071972	node/8750198138	Rocky Point	
+yosemite	Q118720272	node/8750198139	Middle Brother	
+yosemite	Q118720289	node/8750198140	Lower Brother	
+yosemite	Q6841259	node/8753468082	Middle Cathedral Rock	
+yosemite	Q121071158	node/8753468084	Gunsight	
+yosemite	Q121075761	node/8753468085	Church Tower	
+yosemite	Q121071309	node/8753468086	Pulpit Rock	
+yosemite	Q3478792	node/8754416598	Sentinel Rock	
+yosemite	Q118720795	node/9371360077	K-P Pinnacle	
+yosemite	Q7797390	node/9620017765	Three Chute Falls	
+yosemite	Q49708118	node/10870899087	Black Spring	
+yosemite	Q49729084	node/10870899088	Moss Spring	
+yosemite	Q121073023	node/11079407428	Eagle Tower	
+yosemite	Q49471689	node/11079407429	Yosemite Point	
+yosemite	Q121072821	node/11079407430	Arrowhead Spire	
+yosemite	Q121072250	node/11079407466	Watkins Pinnacles	
+yosemite	Q49724579	node/11079407467	Iron Spring	
+yosemite	Q49693572	node/11079407468	Medial Moraine	
+yosemite	Q49682696	node/11079428240	Bridalveil Moraine	
+yosemite	Q123256278	node/11302343394	Roosevelt Point	
+yosemite	Q5325192	node/11721524314	Eagle Peak	
+yosemite	Q137449561	node/13387317241	Lady Franklin Rock	
+yosemite	Q7658687	way/30097597	Swinging Bridge	
+yosemite	Q7975632	way/31165178	Wawona Tunnel	
+yosemite	Q97015030	way/38966070	Northside Drive	
+yosemite	Q27595463	way/39839632	Lost Lake	
+yosemite	Q99517084	way/40247988	John Muir Trail	
+yosemite	Q97015049	way/61981049		
+yosemite	Q97007039	way/61981051		
+yosemite	Q6874579	way/62002226	Mirror Lake	
+yosemite	Q2200914	way/80230546	Emerald Pool	
+yosemite	Q99982079	way/147100767		
+yosemite	Q5566155	way/159289425	Geology Hut	
+yosemite	Q8055943	way/162802482	Yosemite Valley Chapel	
+yosemite	Q98955176	way/164018034	The Ansel Adams Gallery	
+yosemite	Q96873688	way/164018040	Degnan's Deli	
+yosemite	Q8055932	way/164018047	Yosemite Museum & Library	
+yosemite	Q7292787	way/164018048	Rangers' Club	
+yosemite	Q97577303	way/164018054	Yosemite Wilderness Center	
+yosemite	Q36735397	way/164018059	Yosemite Exploration Center	
+yosemite	Q97577069	way/164018060	Yosemite Village Post Office	
+yosemite	Q66375636	way/164018136	Yosemite Branch Library	
+yosemite	Q98938396	way/164018263	Yosemite Administration Building	
+yosemite	Q4696448	way/164025859	Ahwahnee Hotel	
+yosemite	Q1969613	way/164026487	Yosemite Conservation Heritage Center	
+yosemite	Q97028828	way/193160431	El Capitan Drive	
+yosemite	Q121071410	way/206870276	Stoneman Meadow	
+yosemite	Q49584422	way/206870277	Ahwahnee Meadow	
+yosemite	Q49595268	way/206870279	Leidig Meadow	
+yosemite	Q97014796	way/220380913	Southside Drive	
+yosemite	Q97031998	way/291680478	Lower Yosemite Fall Trail	
+yosemite	Q8055919	way/291680479	Yosemite Creek	
+yosemite	Q97015069	way/292254778		
+yosemite	Q97015459	way/302327416	Northside Drive	
+yosemite	Q49860580	way/404259327	Bluejay Creek	
+yosemite	Q49897910	way/404259328	Eagle Peak Creek	
+yosemite	Q49926796	way/404259332	Lehamite Creek	
+yosemite	Q124325725	way/404259334	Royal Arch Creek	
+yosemite	Q49948949	way/425800947	Ribbon Creek	
+yosemite	Q49469971	way/435900798	Panorama Cliff	
+yosemite	Q8055928	way/484951748	Yosemite Valley Lodge	
+yosemite	Q49470175	way/777734149	Profile Cliff	
+yosemite	Q7373682	way/945149407	Royal Arches	
+yosemite	Q7797362	way/945154447	Three Brothers	
+yosemite	Q49690397	way/945527015	Illilouette Ridge	
+yosemite	Q49604702	way/945527019	Pothole Meadows	
+yosemite	Q49589968	way/957580249	Eagle Peak Meadows	
+yosemite	Q49841271	way/1015980893	Artist Creek	
+yosemite	Q49841271	way/1015980894	Artist Creek	
+yosemite	Q49841271	way/1015980895	Artist Creek	
+yosemite	Q49948949	way/1028598283	Ribbon Creek	
+yosemite	Q49948949	way/1028598284	Ribbon Creek	
+yosemite	Q49690487	way/1193630413	Indian Ridge	
+yosemite	Q49605604	way/1193630416	Ribbon Meadow	
+yosemite	Q49468663	way/1267845112	Fireplace Bluffs	
+yosemite	Q124325725	way/1448172012	Royal Arch Creek	
+yosemite	Q124325725	way/1448172013	Royal Arch Creek	
+yosemite	Q49586524	relation/8310500	Bridalveil Meadow	
+yosemite	Q35695514	relation/17344343	El Capitan Meadow	
+zermatt	Q1374	node/26863664	Matterhorn	
+zermatt	Q27494	node/80387968	Zermatt	
+zermatt	Q690177	node/241018682	Hohtälli	
+zermatt	Q675446	node/241018688	Klein Matterhorn	
+zermatt	Q911159	node/253338916	Breuil-Cervinia	
+zermatt	Q691854	node/307196126	Gobba di Rollin	
+zermatt	Q30405	node/307196932	Punta Gnifetti / Signalkuppe	
+zermatt	Q743709	node/353049786	Rifugio Guide d'Ayas	
+zermatt	Q30446	node/364072386	Castor	
+zermatt	Q30485	node/364072387	Pollux	
+zermatt	Q3644197	node/365064161	Breithorn Occidentale / Westgipfel	
+zermatt	Q30400	node/365064325	Zumsteinspitze	
+zermatt	Q3647493	node/393165629	Riffelhorn	
+zermatt	Q22652820	node/393165636	Gugle	
+zermatt	Q30490	node/393169561	Ober Gabelhorn	
+zermatt	Q734448	node/393169562	Mont Durand	
+zermatt	Q668261	node/393169563	Pointe de Zinal	
+zermatt	Q2575023	node/393171421	Liskamm Westgipfel	
+zermatt	Q3646970	node/393192159	Unter Gabelhorn	
+zermatt	Q644946	node/393192181	Oberrothorn	
+zermatt	Q5005186	node/393192182	Bösentrift	
+zermatt	Q7782204	node/401234276	Theodulhorn	
+zermatt	Q30418	node/401234281	Parrotspitze / Punta Parrot	
+zermatt	Q2113383	node/401234364	Jägerhorn	
+zermatt	Q676736	node/401234368	Stockhorn	
+zermatt	Q3403	node/414760065	Dufourspitze	
+zermatt	Q666796	node/434306780	Gornergrat	
+zermatt	Q3985158	node/456920789	Testa Grigia	
+zermatt	Q1474937	node/459834520	Furi	
+zermatt	Q217946	node/682201392	Zmutt	
+zermatt	Q682659	node/692973189	Rote Nase	
+zermatt	Q633283	node/852677837	Liskamm Ostgipfel	
+zermatt	Q33170246	node/1243390242	Silbersattel	
+zermatt	Q30397	node/1243390246	Nordendspitze	
+zermatt	Q2629296	node/1356298379	Breithorn Centrale	
+zermatt	Q2629275	node/1356298439	Breithorn Orientale / Ostgipfel	
+zermatt	Q2620095	node/1356298568	Roccia Nera	
+zermatt	Q2629309	node/1356298598	Gemello del Breithorn	
+zermatt	Q673716	node/1373112888	Grenzgipfel	
+zermatt	Q31649074	node/1373113990	Kleines Fillarhorn	
+zermatt	Q3754744	node/1749686878	Furggen	
+zermatt	Q1801525	node/1777747187	Plan Maison	
+zermatt	Q16532752	node/1880342036	Bivacco Città di Gallarate	
+zermatt	Q22486374	node/1975493071	Fluehorn	
+zermatt	Q22535341	node/1975493089	Pfulwe	
+zermatt	Q22571161	node/1975494665	Spitzi Flue	
+zermatt	Q3939544	node/2304704014	Entdeckungsfelsen	
+zermatt	Q88961317	node/2304704016	Lisjoch	
+zermatt	Q33171194	node/2304704037	Zwillingsjoch	
+zermatt	Q33166683	node/2428064301	Colle Gnifetti	
+zermatt	Q16887824	node/2525093059	Zum See	
+zermatt	Q3682818	node/2603255881	Colle superiore delle Cime Bianche	
+zermatt	Q33166718	node/3018567023	Grenzsattel	
+zermatt	Q19545591	node/3018568584	Torre di Castelfranco	
+zermatt	Q3637348	node/3048645660	Bec Pio Merlo	
+zermatt	Q664935	node/3114843125	Dunantspitze	
+zermatt	Q1620176	node/3400248360	Hirli	
+zermatt	Q1493645	node/3400307808	Gant	
+zermatt	Q7333237	node/3444469294	Riffelalp	
+zermatt	Q239460	node/3444480468	Theodulpass	
+zermatt	Q1752180	node/3651057032	Pic Tyndall	
+zermatt	Q3866447	node/3676440276	Motta di Pleté Centrale	
+zermatt	Q1630972	node/4058067184	Monte Rosa	
+zermatt	Q1771753	node/4338405329	Sunnegga	
+zermatt	Q22659258	node/4593390398	Äbihorn	
+zermatt	Q22634503	node/5096096405	Gemsspitz	
+zermatt	Q27135384	node/5175490924	Wisshorn	
+zermatt	Q2982291	node/5379031155	Colle Del Lys	
+zermatt	Q90158191	node/5480144036	The Omnia	
+zermatt	Q1416780	node/6483405286	Findeln	
+zermatt	Q262583	node/7276463737	Furgghorn	
+zermatt	Q3985163	node/7276514779	Testa del Leone	
+zermatt	Q666796	node/8925949718	Gornergrat	
+zermatt	Q12681203	node/9070906905	Hörnlihütte	
+zermatt	Q179153	node/10167539308	Schönbielhütte SAC	
+zermatt	Q672412	node/11063882922	Monte Rosa Hütte	
+zermatt	Q692619	node/11537289295	Unterrothorn	
+zermatt	Q22632293	node/11538220027	Hohwänghorn	
+zermatt	Q22528760	node/11538229818	Mittler Gabelhorn	
+zermatt	Q22402005	node/12040710129	Stockchnubel	
+zermatt	Q22621184	node/12040710191	Gagenhaupt	
+zermatt	Q22388419	node/12040710558	Unterer Blausatz	
+zermatt	Q22412601	node/12040710761	Strahlchnubel	
+zermatt	Q1474933	node/12040718890	Furggsattel	
+zermatt	Q7190585	node/13801169159	Picco Muzio	
+zermatt	Q264987	way/22330670	Gant - Hohtälli	
+zermatt	Q3754471	way/22341544	Funivia del Plateau Rosa	
+zermatt	Q892877	way/22341547	Bontadini	
+zermatt	Q668432	way/30950380	Schwarzsee	
+zermatt	Q33514023	way/30952470	Bahnhof Zermatt Gornergratbahn	
+zermatt	Q29929518	way/30952471	Kirche St. Mauritius	
+zermatt	Q15132540	way/31523267	Triftjigletscher	
+zermatt	Q18394091	way/31523284	Theodulgletscher	
+zermatt	Q358367	way/32340961	Adlergletscher	
+zermatt	Q64145010	way/32344672	Tiefmattengletscher	
+zermatt	Q2604627	way/32344679	Zmuttgletscher	
+zermatt	Q204258	way/32345021	Glacier de Zinal	
+zermatt	Q1696522	way/32462460	Triftgletscher	
+zermatt	Q64142722	way/32462470	Gabelhorngletscher	
+zermatt	Q3761705	way/32471325	Ghiacciaio della Sesia	
+zermatt	Q672967	way/34291839	Riffelsee	
+zermatt	Q1604671	way/34291878	Mellichgletscher	
+zermatt	Q1626806	way/35329280	Stellisee	
+zermatt	Q607178	way/35329281	Grünsee	
+zermatt	Q23559106	way/35329289	Gornera	
+zermatt	Q3825707	way/60356682	Lago Diga del Goillet	
+zermatt	Q1118193	way/60356684	Rifugio Guide del Cervino	
+zermatt	Q135907688	way/114941970	Torrente Barmaz	
+zermatt	Q135907527	way/114942029	Torrente Porteiller	
+zermatt	Q478550	way/125447845	Rifugio Duca degli Abruzzi all'Oriondé	
+zermatt	Q373275	way/149862629	Rifugio Capanna Regina Margherita	
+zermatt	Q111879528	way/166437947	Sertorelli Sport Hotel	
+zermatt	Q118315753	way/166437950	Chiesa della Regina della Valle	
+zermatt	Q112018507	way/166438442	Aux Pieds du Roi	
+zermatt	Q3640568	way/194909761	Bivacco Rossi e Volante	
+zermatt	Q109659674	way/234985032	Grindjisee	
+zermatt	Q29929551	way/239782741	Kapelle der Heiligen Familie	
+zermatt	Q1140301	way/254529621	Rifugio Jean-Antoine Carrel	
+zermatt	Q29929491	way/295867171		
+zermatt	Q904934	way/295875967	Rifugio Teodulo	
+zermatt	Q15221895	way/296194840	Kulmhotel Gornergrat	
+zermatt	Q1493357	way/332895975	Gandegghütte	
+zermatt	Q870458	way/439390162	Solvayhütte	
+zermatt	Q55380814	way/569677626		
+zermatt	Q23559106	way/1134238428	Gornera	
+zermatt	Q64738847	way/1193035153	Arbenbiwak	
+zermatt	Q64142722	way/1330122429	Gabelhorngletscher	
+zermatt	Q23559106	way/1349011846	Gornera	
+zermatt	Q3761709	way/1525529698	Ghiacciaio delle Vigne	
+zermatt	Q26831085	relation/156947	Grenzgletscher	
+zermatt	Q738365	relation/2622927	Grande Ghiacciaio di Verra	
+zermatt	Q3761688	relation/5394421	Ghiacciaio del Lys	
+zermatt	Q64142002	relation/14779693	Breithorngletscher	
+zermatt	Q665077	relation/14779748	Gornergletscher	
+zermatt	Q6789746	relation/14779829	Matterhorngletscher	
+zermatt	Q691749	relation/18040364	Findelgletscher	

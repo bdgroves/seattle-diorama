@@ -1,0 +1,30 @@
+✨ Pixi task (sierra-fetch): python pipeline/terrain.py fetch
+Traceback (most recent call last):
+  File "/home/runner/work/seattle-diorama/seattle-diorama/pipeline/terrain.py", line 277, in fetch
+    raise RuntimeError("not in the US")
+RuntimeError: not in the US
+[yosemite] USGS 3DEP elevation 857 x 425 ...
+  elevation 1114-2769 m
+[yosemite] Overpass https://overpass-api.de/api/interpreter ...
+  3,322 OSM elements
+[tuolumne] USGS 3DEP elevation 688 x 505 ...
+  elevation 2364-3405 m
+[tuolumne] Overpass https://overpass-api.de/api/interpreter ...
+  946 OSM elements
+  3DEP skipped (not in the US); using Terrarium tiles 1160 x 554
+  elevation -39-1381 m
+[amalfi] Overpass https://overpass-api.de/api/interpreter ...
+  71,995 OSM elements
+  swissALTI3D tiles for 1110 x 750 ...
+  261 tiles
+  ... 0/261
+  ... 40/261
+  ... 80/261
+  ... 120/261
+  ... 160/261
+  ... 200/261
+  ... 240/261
+  swissALTI3D covers 89% of the box; Terrain Tiles for the rest
+  elevation 1524-4630 m
+[zermatt] Overpass https://overpass-api.de/api/interpreter ...
+  7,299 OSM elements

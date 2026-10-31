@@ -1,0 +1,14 @@
+✨ Pixi task (models): python pipeline/wikidata3d.py
+[seattle] 157 OSM features with a wikidata tag
+[amalfi] 188 OSM features with a wikidata tag
+[tuolumne] 58 OSM features with a wikidata tag
+[yosemite] 131 OSM features with a wikidata tag
+[zermatt] 136 OSM features with a wikidata tag
+asking Wikidata about 645 items ...
+1 have a 3D model on Commons
+  Q5317 Space Needle: Space Needle.stl (0.2 MB, CC BY 4.0)
+[seattle] 1 feature(s) get a real model
+[amalfi] 0 feature(s) get a real model
+[tuolumne] 0 feature(s) get a real model
+[yosemite] 0 feature(s) get a real model
+[zermatt] 0 feature(s) get a real model

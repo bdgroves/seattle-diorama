@@ -1,0 +1,57 @@
+✨ Pixi task (build): python pipeline/build.py
+Loaded 11,171 OSM elements from osm.json
+Coastline: 1 line(s) -> 2 pieces
+Buildings: 1,480 prisms (1,111 outlines, 602 parts)
+Trees: 8,534 (2,312 mapped in OSM)
+Monorail: 2 beam(s), 3050 m
+Artworks: 106
+Wrote /home/runner/work/seattle-diorama/seattle-diorama/web/public/data/scene.json (0.9 MB)
+✨ Pixi task (sierra-build): python pipeline/terrain.py build
+[yosemite] grid 857 x 425 @ 18.0 m, 3,322 OSM elements, elevation 1114-2769 m
+  lakes: 4
+  rivers/streams: 56
+  roads: 483, lanes for traffic: 27
+  buildings: 1014
+  trees: 42,950
+  waterfall Upper Yosemite Fall: 446 m of the real 436 m found, slope 0.5
+  waterfall Lower Yosemite Fall: 125 m of the real 98 m found, slope 4.8
+  waterfall Bridalveil Fall: 232 m of the real 189 m found, slope 9.0
+  waterfall Vernal Fall: 103 m of the real 97 m found, slope 3.9
+  waterfall Nevada Fall: 181 m of the real 181 m found, slope 1.2
+  waterfall Ribbon Fall: 495 m of the real 491 m found, slope 9.6
+  waterfall Horsetail Fall: 312 m of the real 305 m found, slope 1.0
+  headlamps: 24
+  wrote yosemite.json + yosemite.bin (3.1 MB)
+[tuolumne] grid 688 x 505 @ 16.0 m, 946 OSM elements, elevation 2364-3405 m
+  lakes: 58
+  rivers/streams: 73
+  roads: 163, lanes for traffic: 2
+  buildings: 100
+  trees: 39,945
+  wrote tuolumne.json + tuolumne.bin (2.6 MB)
+[amalfi] grid 1160 x 554 @ 35.0 m, 71,995 OSM elements, elevation -39-1381 m
+  coastline: 70 line(s), 69 island ring(s), 2 pieces
+  sea: 73% of the box
+  lakes: 0
+  town cores: 68% of residential land
+  rivers/streams: 72
+  roads: 5916, lanes for traffic: 504
+  buildings: 45870
+  trees: 73,656
+  coast road: 37.4 km
+  boat routes: 23 (21 OSM ferry ways)
+  anchored boats: 140
+  beach umbrellas: 3675
+  wrote amalfi.json + amalfi.bin (13.8 MB)
+[zermatt] grid 1110 x 750 @ 18.0 m, 7,299 OSM elements, elevation 1524-4630 m
+  lakes: 66
+  rivers/streams: 129
+  roads: 1216, lanes for traffic: 10
+  buildings: 2620
+  chalets: 2620
+  trees: 16,873
+  headlamps: 24
+  train line Matterhorn Gotthard Bahn: 2.5 km
+  train line Gornergratbahn: 5.5 km
+  lifts: 46, railways: 6, pistes: 243, cows: 275 in 18 herds
+  wrote zermatt.json + zermatt.bin (5.0 MB)
