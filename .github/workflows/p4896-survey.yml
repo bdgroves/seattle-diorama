@@ -18,12 +18,16 @@ jobs:
             ?i wdt:P4896 ?m .
             OPTIONAL { ?i wdt:P625 ?c }
             OPTIONAL { ?i wdt:P17 ?k . ?k rdfs:label ?country FILTER(lang(?country)="en") }
-            OPTIONAL { ?i wdt:P31 ?t . ?t rdfs:label ?type FILTER(lang(?type)="en") }
             OPTIONAL { ?i rdfs:label ?l FILTER(lang(?l)="en") }
           }"""
           url = "https://query.wikidata.org/sparql?format=json&query=" + urllib.parse.quote(Q)
           req = urllib.request.Request(url, headers={"User-Agent": "seattle-diorama/0.1 (https://github.com/bdgroves/seattle-diorama)"})
-          rows = json.load(urllib.request.urlopen(req, timeout=60))["results"]["bindings"]
+          try:
+              rows = json.load(urllib.request.urlopen(req, timeout=60))["results"]["bindings"]
+          except Exception as e:
+              body = getattr(e, "read", lambda: b"")()[:2000]
+              open("docs/p4896-survey.json", "w").write(json.dumps({"error": repr(e), "body": body.decode("utf-8", "replace")}))
+              raise SystemExit(0)
           out = {}
           for r in rows:
               q = r["i"]["value"].rsplit("/", 1)[1]
@@ -37,6 +41,7 @@ jobs:
           json.dump(items, open("docs/p4896-survey.json", "w"), indent=1, ensure_ascii=False)
           print(len(items), "items;", sum(1 for o in items if o["coord"]), "with coordinates")
           PY
-      - run: |
+      - if: always()
+        run: |
           git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/p4896-survey.json && git commit -q -m "survey [skip ci]" && git push -q
