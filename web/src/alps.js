@@ -7,6 +7,9 @@
 import * as THREE from 'three';
 import * as BGU from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from './life.js';
+import { buildCow } from './characters/cow.js';
+import { buildAlphornist } from './characters/alphorn.js';
+import { bake } from './characters/geo.js';
 
 function paint(g, hex) {
   const c = new THREE.Color(hex), n = g.attributes.position.count, a = new Float32Array(n * 3);
@@ -373,69 +376,45 @@ function pisteSystem(pistes, scale) {
 function cowHerd(flat, scale) {
   const n = (flat || []).length / 5;
   const group = new THREE.Group();
-  if (!n) return { group, update() {}, count: 0 };
-  const body = BGU.mergeGeometries([
-    B(2.0, 0.85, 0.85, 0, 1.15, 0, '#ffffff'),                    // barrel
-    B(0.55, 0.5, 0.45, 1.25, 1.35, 0, '#ffffff'),                 // head
-    B(0.25, 0.18, 0.36, 1.55, 1.25, 0, '#e8c9b5'),                // muzzle
-    ...[[0.7, 0.28], [0.7, -0.28], [-0.7, 0.28], [-0.7, -0.28]].map(([x, z]) => B(0.18, 0.75, 0.18, x, 0.38, z, '#ffffff')),
-    B(0.08, 0.6, 0.08, -1.05, 1.0, 0, '#ffffff'),                 // tail
-    B(0.07, 0.07, 0.3, 1.25, 1.62, 0.32, '#e9e2cf'), B(0.07, 0.07, 0.3, 1.25, 1.62, -0.32, '#e9e2cf'),   // horns
-    B(0.07, 0.22, 0.07, 1.3, 1.75, 0.45, '#e9e2cf'), B(0.07, 0.22, 0.07, 1.3, 1.75, -0.45, '#e9e2cf'),
-    B(0.22, 0.26, 0.22, 1.0, 0.82, 0, '#d4a531'),                 // the bell
-  ]);
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75 });
-  const mesh = new THREE.InstancedMesh(body, mat, n);
-  mesh.castShadow = true;
-  // the Alpabzug crowns: flowers and a big ribboned bell
-  const fancyIdx = [];
-  for (let i = 0; i < n; i++) if (flat[i * 5 + 4] === 2) fancyIdx.push(i);
-  // a tall cone of flowers on the head with a little fir on top, paper
-  // rosettes, and the big Treichel bell on an embroidered strap
-  const FLOWER = ['#e2312b', '#f2c230', '#ffffff', '#3f7fd6', '#e86ab0', '#f08a24', '#7a2f8f'];
-  const parts = [];
-  let fk = 0;
-  for (let tier = 0; tier < 5; tier++) {
-    const r = 0.34 - tier * 0.06, y = 1.78 + tier * 0.17, n = Math.max(3, 9 - tier * 2);
-    for (let k = 0; k < n; k++) {
-      const a = (k / n) * Math.PI * 2 + tier * 0.4;
-      parts.push(paint(new THREE.SphereGeometry(0.1, 6, 4).translate(1.18 + Math.cos(a) * r * 0.7, y, Math.sin(a) * r), FLOWER[fk++ % FLOWER.length]));
-    }
-  }
-  parts.push(paint(new THREE.ConeGeometry(0.14, 0.45, 6).translate(1.18, 2.85, 0), '#2f6b35'));      // the fir sprig
-  parts.push(paint(new THREE.ConeGeometry(0.36, 0.2, 10).translate(1.18, 1.72, 0), '#2f8f3e'));     // greenery base
-  parts.push(B(0.12, 0.5, 0.02, 1.0, 1.25, 0.47, '#c4232c'), B(0.12, 0.5, 0.02, 1.0, 1.25, -0.47, '#c4232c'));   // the strap
-  parts.push(B(0.14, 0.12, 0.98, 1.0, 1.52, 0, '#1f2328'));
-  parts.push(paint(new THREE.CylinderGeometry(0.2, 0.32, 0.55, 10).translate(1.05, 0.68, 0), '#d4a531'));      // the Treichel
-  for (const z of [-0.3, 0.3]) parts.push(paint(new THREE.CylinderGeometry(0.12, 0.12, 0.03, 10).rotateX(Math.PI / 2).translate(1.1, 1.55, z * 1.55), '#ffffff'));
-  const crownG = BGU.mergeGeometries(parts);
-  const crowns = new THREE.InstancedMesh(crownG, mat, Math.max(1, fancyIdx.length));
-  crowns.count = fancyIdx.length;
-  const COAT = ['#2b211c', '#8a6d55', '#2b211c'];              // Eringer black, Brown Swiss; the queens are Eringer
-  const col = new THREE.Color();
+  if (!n) return { group, update() {}, count: 0, fancy: 0 };
+  // the hand-built characters (see characters.html), baked to one coloured mesh each
+  const kinds = [
+    bake(buildCow({ breed: 'eringer', dressed: false, detail: 0.5 })),
+    bake(buildCow({ breed: 'brownswiss', dressed: false, detail: 0.5 })),
+    bake(buildCow({ breed: 'eringer', dressed: true, detail: 0.5 })),
+  ];
+  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8 });
+  const lists = [[], [], []];
+  for (let i = 0; i < n; i++) lists[flat[i * 5 + 4]]?.push(i);
+  const meshes = kinds.map((g, k) => {
+    const m = new THREE.InstancedMesh(g, mat, Math.max(1, lists[k].length));
+    m.count = lists[k].length;
+    m.castShadow = true;
+    group.add(m);
+    return m;
+  });
   const cows = [];
+  for (let i = 0; i < n; i++) {
+    const [x, y, z, h] = flat.slice(i * 5, i * 5 + 4);
+    cows.push({ x, y, z, h, seed: (i * 0.618) % 1 });
+  }
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3(scale, scale, scale);
   const yAxis = new THREE.Vector3(0, 1, 0);
-  for (let i = 0; i < n; i++) {
-    const [x, y, z, h, breed] = flat.slice(i * 5, i * 5 + 5);
-    cows.push({ x, y, z, h, seed: (i * 0.618) % 1 });
-    mesh.setColorAt(i, col.set(breed === 0 ? COAT[0] : breed === 1 ? COAT[1] : COAT[2]));
-  }
-  group.add(mesh, crowns);
   function update(t) {
-    let f = 0;
-    cows.forEach((c, i) => {
-      // graze: drift slowly, turn now and then
-      const head = c.h + Math.sin(t * 0.05 + c.seed * 40) * 0.8;
-      p.set(c.x + Math.sin(t * 0.03 + c.seed * 9) * 2.5, c.z, -(c.y + Math.cos(t * 0.027 + c.seed * 7) * 2.5));
-      q.setFromAxisAngle(yAxis, head);
-      m4.compose(p, q, sc);
-      mesh.setMatrixAt(i, m4);
-      if (fancyIdx[f] === i) { crowns.setMatrixAt(f, m4); f++; }
+    lists.forEach((list, k) => {
+      list.forEach((i, slot) => {
+        const c = cows[i];
+        // graze: drift slowly, turn now and then
+        const head = c.h + Math.sin(t * 0.05 + c.seed * 40) * 0.8;
+        p.set(c.x + Math.sin(t * 0.03 + c.seed * 9) * 2.5, c.z, -(c.y + Math.cos(t * 0.027 + c.seed * 7) * 2.5));
+        q.setFromAxisAngle(yAxis, head);
+        meshes[k].setMatrixAt(slot, m4.compose(p, q, sc));
+      });
+      meshes[k].instanceMatrix.needsUpdate = true;
     });
-    mesh.instanceMatrix.needsUpdate = true; crowns.instanceMatrix.needsUpdate = true;
   }
-  return { group, update, count: n, fancy: fancyIdx.length };
+  update(0);
+  return { group, update, count: n, fancy: lists[2].length };
 }
 
 // ------------------------------------------------------------------ paragliders
@@ -493,29 +472,7 @@ function paragliders(spots, heightAt, scale) {
 function alphorns(points, scale) {
   const group = new THREE.Group();
   if (!points.length) return { group, update() {} };
-  const wood = '#a8693a', band = '#4a2c17';
-  const parts = [
-    B(0.2, 0.85, 0.2, 0, 0.43, 0.13, '#2b2622'), B(0.2, 0.85, 0.2, 0, 0.43, -0.13, '#2b2622'),   // trousers
-    B(0.34, 0.12, 0.5, 0, 0.9, 0, '#2b2622'),
-    B(0.3, 0.6, 0.48, 0, 1.25, 0, '#f6f3ea'),                                                     // white shirt
-    B(0.32, 0.5, 0.5, 0.0, 1.27, 0, '#c4232c'),                                                   // red vest
-    B(0.24, 0.26, 0.24, 0.02, 1.7, 0, '#e9c6a6'),                                                 // head
-    B(0.46, 0.04, 0.46, 0.02, 1.85, 0, '#1f1c1a'), B(0.24, 0.2, 0.24, 0.02, 1.96, 0, '#1f1c1a'),  // the hat
-    B(0.5, 0.1, 0.1, 0.25, 1.45, 0.18, '#f6f3ea'), B(0.5, 0.1, 0.1, 0.25, 1.45, -0.18, '#f6f3ea'), // arms to the horn
-  ];
-  // the horn: from the lips down and forward 3.4 m to the upturned bell on the grass
-  const a = new THREE.Vector3(0.2, 1.62, 0), b = new THREE.Vector3(3.5, 0.32, 0);
-  const segs = 8;
-  for (let k = 0; k < segs; k++) {
-    const p0 = a.clone().lerp(b, k / segs), p1 = a.clone().lerp(b, (k + 1) / segs);
-    const len = p0.distanceTo(p1), mid = p0.clone().add(p1).multiplyScalar(0.5);
-    const r0 = 0.025 + 0.06 * (k / segs) ** 2, r1 = 0.025 + 0.06 * ((k + 1) / segs) ** 2;
-    const cyl = new THREE.CylinderGeometry(r1, r0, len, 8).rotateZ(Math.PI / 2 + Math.atan2(p1.y - p0.y, p1.x - p0.x) - Math.PI).translate(mid.x, mid.y, mid.z);
-    parts.push(paint(cyl, k % 3 === 2 ? band : wood));
-  }
-  parts.push(paint(new THREE.CylinderGeometry(0.2, 0.09, 0.4, 12).translate(3.55, 0.48, 0), wood));
-  parts.push(paint(new THREE.CylinderGeometry(0.205, 0.205, 0.06, 12).translate(3.55, 0.7, 0), band));
-  const geo = BGU.mergeGeometries(parts);
+  const geo = bake(buildAlphornist({ detail: 0.5 }));
   const mesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 }), points.length);
   mesh.castShadow = true;
   group.add(mesh);

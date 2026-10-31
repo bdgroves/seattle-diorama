@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alpabzug Characters</title>
+  <meta name="description" content="A hand-built Swiss cow dressed for the Alpabzug and an alphorn player in Sunday dress, in 3D, with the alphorn's real natural harmonics echoing off the mountains." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root { --ink: #1f1d1a; --paper: rgba(250, 247, 241, 0.88); --rust: #b4482d; --line: rgba(31, 29, 26, 0.12); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #cfe3f3; color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    .card { position: fixed; background: var(--paper); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); }
+    .title { left: 16px; top: 16px; max-width: 360px; padding: 18px 20px; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6b655c; font-weight: 600; }
+    h1 { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 26px; margin: 6px 0 8px; line-height: 1.15; }
+    h1 em { font-style: italic; color: var(--rust); font-weight: 500; }
+    p { margin: 0 0 10px; font-size: 13.5px; line-height: 1.5; color: #4a453e; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    button { font: 500 13px Inter, sans-serif; border: 1px solid var(--line); background: #fff; color: var(--ink); padding: 8px 12px; border-radius: 999px; cursor: pointer; }
+    button:hover { background: #f3efe7; }
+    button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+    button.on { background: #e9e3d6; }
+    .back { position: fixed; right: 16px; top: 16px; padding: 10px 14px; font-size: 13px; }
+    .back a { color: var(--ink); text-decoration: none; font-weight: 500; }
+    .notes { right: 16px; bottom: 16px; max-width: 340px; padding: 12px 16px; font-size: 12px; color: #5a554d; line-height: 1.5; }
+    @media (max-width: 640px) {
+      .title { left: 12px; right: 12px; max-width: none; top: 12px; padding: 14px 16px; }
+      h1 { font-size: 21px; }
+      .notes { display: none; }
+      .back { top: auto; bottom: 12px; right: 12px; }
+    }
+    body.still-done .card, body.film .card { display: none; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <header class="card title">
+    <div class="eyebrow">Zermatt diorama · character studio</div>
+    <h1>The Alpabzug <em>queen</em> &amp; the alphorn player</h1>
+    <p>Hand-built in Three.js: <span id="cow-name">the Eringer queen</span> in her crown of paper roses and fir, and a herdsman in Sunday dress with a 3.5&nbsp;m spruce alphorn. Drag to spin, scroll to zoom.</p>
+    <div class="buttons">
+      <button id="play" class="primary">▶ Play the alphorn</button>
+      <button id="bell">Ring her bell</button>
+      <button id="breed">Show a Brown Swiss</button>
+      <button id="dress">Everyday bell</button>
+      <button id="spin">Slow spin</button>
+    </div>
+  </header>
+  <div class="card back"><a href="./?place=zermatt">← Back to Zermatt</a></div>
+  <div class="card notes">The alphorn plays only its natural harmonics, as a real one does, including the 11th, the "alphorn fa" that falls between F and F#. Sound turns on with the first button you press.</div>
+  <script type="module" src="./src/characters/main.js"></script>
+</body>
+</html>

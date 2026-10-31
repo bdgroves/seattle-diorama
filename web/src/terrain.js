@@ -843,7 +843,7 @@ export async function buildTerrainPlace({ scene, uniforms, base, cfg }) {
       id: 'models', label: `Commons 3D models (${models.loaded.length})`, on: true,
       onChange(on) { models.setVisible(on); if (boxes) boxes.visible = !on; return on ? 'Real 3D models from Wikimedia Commons, via Wikidata' : 'Back to the simple boxes'; },
     }] : []),
-    creditsHtml: creditsHtml(models.loaded),
+    creditsHtml: creditsHtml(models.loaded) + (cfg.metaHtml || ''),
     film, simOffset: 0,
     stats: cfg.stats ? cfg.stats({ data, nTrees, trailKm, boats: fleet?.count || 0, extra })
       : `${Math.round(nTrees).toLocaleString()} trees · ${Math.round(trailKm)} km of trails · ${data.meta.attribution}`,

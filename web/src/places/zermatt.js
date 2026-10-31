@@ -37,6 +37,7 @@ const ZERMATT = {
     snowy: 1, stars: 2, milky: 1,
   },
   critterScale: 4,
+  metaHtml: ' · <a href="./characters.html">Meet the Alpabzug queen and the alphorn player &rarr;</a>',
   rideRx: /matterhorn express 1|zermatt - furi/i,
   rideLabel: 'Ride the gondola from Zermatt',
   paraglide: [
