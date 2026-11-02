@@ -133,11 +133,11 @@ def sky_mask(img: np.ndarray) -> np.ndarray:
     return ndimage.binary_closing(sky, iterations=2) | sky
 
 
-def finish(png: Path, top: np.ndarray | None = None) -> np.ndarray:
+def finish(png: Path, top=None) -> np.ndarray:
     """Evening look: a painted sky behind the terrain, warm highlights and cool shadows on the
     land, and haze thickening toward the skyline (distant ridges sit near it)."""
     img = np.asarray(Image.open(png).convert("RGB")).astype(np.int16)
-    sky = skyline.mask(img, top) if top is not None else sky_mask(img)
+    sky = skyline.mask(img, *top) if top is not None else sky_mask(img)
     h = img.shape[0]
     # skyline: the typical height where the sky ends, never so high it squashes the gradient
     first_land = np.argmin(sky, axis=0)
@@ -314,8 +314,8 @@ def main() -> int:
             if args.forge_sky:
                 rgb = np.asarray(Image.open(snapshot).convert("RGB"))
             else:
-                top = skyline.skyline(dem, path.eye[i], path.aim[i], float(path.fov[i]), w, h)
-                rgb = finish(snapshot, top)
+                top, dist = skyline.skyline(dem, path.eye[i], path.aim[i], float(path.fov[i]), w, h)
+                rgb = finish(snapshot, (top, dist))
             rgb = titles(rgb, float(path.t[i]), float(path.t[-1]))
             if args.stills and args.raw:
                 Image.open(snapshot).convert("RGB").save(stills_dir / f"raw_{path.t[i]:05.1f}s.png")

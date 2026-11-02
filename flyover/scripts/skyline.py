@@ -24,7 +24,8 @@ def _points(dem, step):
 
 
 def skyline(dem, eye, aim, fov_deg, w, h, step=1):
-    """Row of the topmost terrain pixel in each column (h where no terrain reaches)."""
+    """Row of the topmost terrain pixel in each column (h where no terrain reaches), and how
+    far away that terrain is (metres along the view)."""
     x, y, z = _points(dem, step)
     E = np.array([eye[0], eye[2], -eye[1]])
     A = np.array([aim[0], aim[2], -aim[1]])
@@ -44,7 +45,7 @@ def skyline(dem, eye, aim, fov_deg, w, h, step=1):
     row = h / 2 - (d @ u) / dz * foc
     half = (config.DEM_RES * step) / dz * foc * 0.75   # each cell's width on screen
     inb = (col > -half - 1) & (col < w + half + 1)
-    col, row, half = col[inb], row[inb], half[inb]
+    col, row, half, dz = col[inb], row[inb], half[inb], dz[inb]
     top = np.full(w, float(h))
     hw = np.minimum(np.ceil(half).astype(int), 96)
     c0 = np.round(col).astype(int)
@@ -55,10 +56,19 @@ def skyline(dem, eye, aim, fov_deg, w, h, step=1):
             c = cc + o
             m = (c >= 0) & (c < w)
             np.minimum.at(top, c[m], rr[m])
-    return np.clip(top, 0, h)
+    dist = np.full(w, 1e9)
+    for k in np.unique(hw):
+        sel = hw == k
+        cc, rr, dd = c0[sel], row[sel], dz[sel]
+        for o in range(-k, k + 1):
+            c = cc + o
+            m = (c >= 0) & (c < w)
+            m[m] &= rr[m] <= top[c[m]] + 1.0
+            np.minimum.at(dist, c[m], dd[m])
+    return np.clip(top, 0, h), dist
 
 
-def mask(img, top, tol=4):
+def mask(img, top, dist=None, tol=4):
     """Sky above the projected skyline; within a few pixels of it, trust colour: a pixel
     matching the sky just above belongs to the sky."""
     h, w = img.shape[:2]
@@ -70,4 +80,31 @@ def mask(img, top, tol=4):
     band = (rows >= top[None, :] - tol) & (rows <= top[None, :] + tol)
     near = np.abs(f - ref[None, :, :]).max(axis=2) < 7
     sky |= band & near
-    return sky
+    # forge3d meshes the nearest ridges a little lower than the full DEM: walk down each
+    # column from the projected line while it is still smooth, bright, unbroken sky
+    lum = f.mean(axis=2)
+    run = np.ones(w, bool)
+    cols = np.arange(w)
+    start = np.clip(top.astype(int) - tol, 1, h - 1)
+    base = f[start - 1, cols]                          # the sky colour where the walk begins
+    # how far down to look: a long way under a ridge close by, hardly at all for distant peaks
+    reach = np.full(w, 260) if dist is None else np.where(dist < 3000, 260, np.where(dist < 12000, 120, 30))
+    walk = np.zeros_like(sky)
+    for k in range(0, 260):
+        r = start + k
+        okc = run & (r < h)
+        rr = np.minimum(r, h - 1)
+        step = np.abs(f[rr, cols] - f[rr - 1, cols]).max(axis=1)
+        drift = np.abs(f[rr, cols] - base).max(axis=1)
+        cond = okc & (k < reach) & (step < 4) & (drift < 12) & (lum[rr, cols] > 200)
+        walk[rr[cond], cols[cond]] = True
+        run = cond
+        if not run.any():
+            break
+    # real gaps are wide bands; a walk that slipped down one column into smooth summit snow
+    # is a thin streak, and a horizontal opening removes it
+    from scipy import ndimage
+    walk = ndimage.binary_opening(walk, structure=np.ones((1, 15), bool))
+    sky |= walk
+    # and a hairline column the projection missed is filled in
+    return ndimage.binary_closing(sky, structure=np.ones((1, 7), bool)) | sky
