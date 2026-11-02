@@ -11,7 +11,7 @@ const TORRES = {
   contour: 100,
   season: 'spring',                         // 'spring' here is the southern summer
   seasonLabel: 'Summer',
-  snowSpring: 1500, snowAutumn: 950,
+  snowSpring: 1950, snowAutumn: 1250,
   springToast: 'January: trekking season, the lenga in full leaf and snow only up high',
   autumnToast: 'Late April: the lenga forests turn red and the first snow comes down the peaks',
   snowToast: 'A storm off the ice field drops snow on the massif',
@@ -25,8 +25,8 @@ const TORRES = {
   buildingColors: ['#7d5a3c', '#8a6a48', '#b04a32', '#e0d6c4', '#5f6f4e'],
   palette: {
     // golden steppe grass, dark lenga, pale granite
-    spring: { 0: '#35562e', 1: '#a4a19a', 2: '#93a356', 5: '#b2a768', 8: '#8f907a', 6: '#d9cfae' },
-    autumn: { 0: '#5a3a26', 1: '#a4a19a', 2: '#b49a5a', 5: '#a8935c', 8: '#8a8572', 6: '#d9cfae' },
+    spring: { 0: '#38582f', 1: '#a19d95', 2: '#8e9d58', 5: '#a39b70', 8: '#8d8c7a', 6: '#d6ccae' },
+    autumn: { 0: '#93432a', 1: '#a19d95', 2: '#ad9658', 5: '#a08c5e', 8: '#8a8572', 6: '#d6ccae' },
   },
   decid: {
     // lenga in leaf, then the famous red; ñirre and calafate in the steppe
@@ -41,10 +41,10 @@ const TORRES = {
   },
   critterScale: 4,
   // condors circle in the thermals over the Torres, the Cuernos and Paine Grande
-  thermals: [[-50.9450, -72.9700], [-50.9900, -73.0000], [-51.0050, -73.0900], [-50.9650, -73.0450]],
-  hikeNear: [-50.9900, -73.0450],
+  thermals: [[-50.9500, -72.9750], [-50.9990, -73.0050], [-50.9950, -73.0870], [-50.9570, -73.0220]],
+  hikeNear: [-51.0269, -73.0404],      // Campamento Italiano, at the foot of the Valle del Francés
   // lenticular clouds (lat, lon, base altitude m) when the wind is up
-  lenticulars: [[-50.9500, -73.0000, 4200], [-51.0000, -73.1300, 3900], [-50.9200, -73.1000, 4600]],
+  lenticulars: [[-50.9550, -73.0000, 4200], [-51.0000, -73.1300, 3900], [-50.9200, -73.1000, 4600]],
   stats: ({ data, nTrees, trailKm, extra }) => {
     const i = extra?.info || {};
     return `${Math.round(trailKm)} km of trails · ${i.hikers || 0} hikers · ${i.bergs || 0} icebergs · ${i.condors || 0} condors · `
@@ -52,13 +52,13 @@ const TORRES = {
   },
   views: [
     { id: 'overview', label: 'Overview', lat: -51.010, lon: -73.060, az: 0.2, polar: 0.95, zoom: 1.0 },
-    { id: 'pehoe', label: 'Cuernos across Lago Pehoé', lat: -50.990, lon: -73.020, az: -0.35, polar: 1.18, zoom: 3.6 },
-    { id: 'torres', label: 'The Torres', lat: -50.9420, lon: -72.9850, az: 1.45, polar: 1.12, zoom: 6.5 },
-    { id: 'frances', label: 'Valle del Francés', lat: -50.975, lon: -73.045, az: 0.05, polar: 1.02, zoom: 4.2 },
+    { id: 'pehoe', label: 'Cuernos across Lago Pehoé', lat: -50.9989, lon: -73.0064, az: -0.2, polar: 1.18, zoom: 3.6 },
+    { id: 'torres', label: 'The Torres', lat: -50.9497, lon: -72.9875, az: 1.45, polar: 1.12, zoom: 6.5 },
+    { id: 'frances', label: 'Valle del Francés', lat: -50.995, lon: -73.050, az: 0.05, polar: 1.02, zoom: 4.2 },
     { id: 'grande', label: 'Paine Grande', lat: -50.99889, lon: -73.09528, az: -0.4, polar: 1.1, zoom: 3.6 },
-    { id: 'grey', label: 'Grey Glacier & icebergs', lat: -51.020, lon: -73.200, az: 0.25, polar: 1.08, zoom: 4.2 },
-    { id: 'salto', label: 'Salto Grande', lat: -51.0510, lon: -73.0030, az: 0.3, polar: 1.15, zoom: 14 },
-    { id: 'nordenskjold', label: 'Lago Nordenskjöld', lat: -51.030, lon: -72.950, az: -0.9, polar: 1.08, zoom: 3.2 },
+    { id: 'grey', label: 'Grey Glacier & icebergs', lat: -51.010, lon: -73.195, az: 0.25, polar: 1.08, zoom: 4.2 },
+    { id: 'salto', label: 'Salto Grande', lat: -51.0677, lon: -73.0066, az: 0.3, polar: 1.15, zoom: 14 },
+    { id: 'nordenskjold', label: 'Lago Nordenskjöld', lat: -51.040, lon: -72.940, az: -0.9, polar: 1.08, zoom: 3.2 },
   ],
   film: ({ V, extra }) => {
     const L = extra?.leads || {};

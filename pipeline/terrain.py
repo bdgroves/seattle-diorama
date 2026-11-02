@@ -685,9 +685,12 @@ def build(place):
         xs = g.x0 + np.arange(g.nx) * g.dx
         west = (xs < g.proj(g.lat0, lon_east)[0])[None, :]
         rs_ = np.random.default_rng(1959)
-        patch = np.asarray(Image.fromarray((rs_.random((g.ny // 8 + 2, g.nx // 8 + 2)) * 255).astype(np.uint8))
-                           .resize((g.nx, g.ny), Image.BICUBIC), np.float32) / 255.0
-        cls[west & (dem > place.get("forest_bottom", 150)) & (dem < tl) & (slope > 7) & (patch > 0.38)] = FOREST
+        # broad stands, not speckle: two octaves of smooth noise
+        def octave(k):
+            return np.asarray(Image.fromarray((rs_.random((g.ny // k + 2, g.nx // k + 2)) * 255).astype(np.uint8))
+                              .resize((g.nx, g.ny), Image.BICUBIC), np.float32) / 255.0
+        patch = 0.7 * octave(40) + 0.3 * octave(12)
+        cls[west & (dem > place.get("forest_bottom", 150)) & (dem < tl) & (slope > 5) & (patch > 0.36)] = FOREST
     cls[dem > tl] = ALPINE
     if place["veg"] == "alps":
         cls[dem > place.get("alpine_top", 2750)] = ROCK

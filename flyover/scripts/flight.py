@@ -21,7 +21,7 @@ from scipy.interpolate import PchipInterpolator
 
 import config
 
-LANDMARK = (-50.9420, -72.9850, 2400)      # the Torres, for the map
+LANDMARK = (-50.9497, -72.9875, 2400)      # the Torres, for the map
 
 # (eye (lat, lon, alt m), aim (lat, lon, alt m), speed through this point m/s, lens fov deg, note)
 # Times come from the speeds: each stretch takes its length / the average of its two speeds.
@@ -36,14 +36,14 @@ KEYS = [
     # 3. Turning east, past Paine Grande's west side.
     ((-51.0200, -73.1500, 1500), (-50.9989, -73.0953, 2500), 620, 46, "Paine Grande"),
     # 4. Over Lago Pehoé to the Cuernos: the postcard view.
-    ((-51.0650, -73.0900, 1300), (-50.9850, -73.0250, 2000), 800, 46, "Lago Pehoé"),
-    ((-51.0500, -73.0400, 1100), (-50.9850, -73.0150, 1900), 460, 44, "the Cuernos"),
+    ((-51.0650, -73.0900, 1300), (-50.9989, -73.0064, 2000), 800, 46, "Lago Pehoé"),
+    ((-51.0500, -73.0400, 1100), (-50.9989, -73.0064, 1900), 460, 44, "the Cuernos"),
     # 5. Up the Valle del Francés, between Paine Grande and the Cuernos.
     ((-51.0050, -73.0450, 1300), (-50.9600, -73.0500, 1500), 520, 48, "Valle del Francés"),
     ((-50.9700, -73.0480, 1700), (-50.9500, -73.0500, 2000), 300, 46, "Mirador Británico"),
     # 6. Climbing east over the Cuernos, past the Torres at their own height.
-    ((-50.9750, -73.0000, 2700), (-50.9440, -72.9850, 2200), 820, 48, "over the Cuernos"),
-    ((-50.9600, -72.9500, 2100), (-50.9430, -72.9850, 2100), 450, 44, "the Torres"),
+    ((-50.9750, -73.0000, 2700), (-50.9497, -72.9875, 2200), 820, 48, "over the Cuernos"),
+    ((-50.9600, -72.9500, 2100), (-50.9497, -72.9875, 2100), 450, 44, "the Torres"),
     # 7. Swinging south over the steppe to finish on the whole massif across Lago
     #    Nordenskjöld, the classic view, with the sun behind the camera.
     ((-51.0000, -72.9050, 1700), (-50.9750, -73.0000, 1700), 950, 46, "Ascencio, swinging south"),
