@@ -244,7 +244,7 @@ def main() -> int:
             print(f"Missing {p.name}. Run: pixi run data, then pixi run prep")
             return 1
     ffmpeg = shutil.which("ffmpeg")
-    if ffmpeg is None and not args.stills:
+    if ffmpeg is None and not args.stills and not args.frames_dir:
         print("ffmpeg must be on PATH")
         return 1
 
