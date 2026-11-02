@@ -108,12 +108,22 @@ def sky_mask(img: np.ndarray) -> np.ndarray:
     lo, hi = img.min(axis=2), img.max(axis=2)
     lum = img.mean(axis=2).astype(np.float32)
     smooth = np.abs(lum - ndimage.uniform_filter(lum, 3)) < 1.5
-    r_, b_ = img[..., 0].astype(np.int16), img[..., 2].astype(np.int16)
-    # near-white grey, or (toward the low sun) forge3d's warm cream; snow is never this warm
-    cand = (((lo >= 228) & (hi - lo <= 10)) | ((r_ >= 238) & (r_ - b_ >= 22) & (lum > 200))) & smooth
+    cand = (lo >= 228) & (hi - lo <= 10) & smooth
     lab, n = ndimage.label(cand)
     top = np.unique(lab[0][lab[0] > 0])
     sky = np.isin(lab, top)
+    # toward the low sun forge3d's sky turns a warm cream, split from the grey by an
+    # antialiased seam: take any flat warm patch that touches the grey sky (snow is never
+    # this warm and this flat)
+    r_, b_ = img[..., 0].astype(np.int16), img[..., 2].astype(np.int16)
+    flat = np.abs(lum - ndimage.uniform_filter(lum, 5)) < 1.0
+    warm = (r_ >= 236) & (r_ - b_ >= 20) & (lum > 200) & flat
+    wl, _ = ndimage.label(warm)
+    near = ndimage.binary_dilation(sky, iterations=8)
+    ids = np.unique(wl[near & (wl > 0)])
+    sizes = ndimage.sum(warm, wl, ids) if len(ids) else []
+    ids = [i for i, z in zip(ids, sizes) if z > 400]
+    sky |= np.isin(wl, ids)
     # close pinholes left by the smoothness test
     return ndimage.binary_closing(sky, iterations=2) | sky
 

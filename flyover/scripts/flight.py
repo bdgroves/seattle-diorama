@@ -41,11 +41,13 @@ KEYS = [
     # 5. Up the Valle del Francés, between Paine Grande and the Cuernos.
     ((-51.0050, -73.0450, 1300), (-50.9600, -73.0500, 1500), 520, 48, "Valle del Francés"),
     ((-50.9700, -73.0480, 1700), (-50.9500, -73.0500, 2000), 300, 46, "Mirador Británico"),
-    # 6. Climbing east over the Cuernos, then round to the east side of the Torres.
-    ((-50.9750, -73.0000, 2700), (-50.9450, -72.9850, 2200), 820, 48, "over the Cuernos"),
-    ((-50.9580, -72.9150, 1500), (-50.9440, -72.9850, 2000), 640, 44, "Ascencio valley"),
-    # 7. Easing in east of the Base de las Torres, the towers on the skyline as the sun lights them.
-    ((-50.9500, -72.9250, 1150), (-50.9430, -72.9850, 2050), 0, 36, "Base de las Torres"),
+    # 6. Climbing east over the Cuernos, past the Torres at their own height.
+    ((-50.9750, -73.0000, 2700), (-50.9440, -72.9850, 2200), 820, 48, "over the Cuernos"),
+    ((-50.9600, -72.9500, 2100), (-50.9430, -72.9850, 2100), 450, 44, "the Torres"),
+    # 7. Swinging south over the steppe to finish on the whole massif across Lago
+    #    Nordenskjöld, the classic view, with the sun behind the camera.
+    ((-51.0000, -72.9050, 1700), (-50.9750, -73.0000, 1700), 950, 46, "Ascencio, swinging south"),
+    ((-51.0500, -72.8900, 1200), (-50.9800, -73.0100, 1500), 0, 44, "the massif over Lago Nordenskjöld"),
 ]
 HOLD_S = 5.0
 FPS = 30
