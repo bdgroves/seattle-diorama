@@ -1,0 +1,37 @@
+Copernicus DEM: 4 tiles -> 2080 x 1888 at 20 m
+  Copernicus_DSM_COG_10_S52_00_W074_00_DEM.tif
+  Copernicus_DSM_COG_10_S52_00_W073_00_DEM.tif
+  Copernicus_DSM_COG_10_S51_00_W074_00_DEM.tif
+  Copernicus_DSM_COG_10_S51_00_W073_00_DEM.tif
+Saved paine_dem_20m.tif: 22-2,652 m
+Sentinel-2: 32 passes to draw from, clearest first (2026-01-01, 2026-01-04, 2026-01-21, 2026-02-03, 2026-03-22 ...)
+sentinel2_0.png: 4160 x 1888 px at 10 m
+  2026-03-22 S2A_18FXJ_20260322_1_L2A cloud  0.9%  ->  98.7% filled
+  2026-03-22 S2B_18FXJ_20260322_0_L2A cloud  1.0%  ->  99.0% filled
+  2026-01-21 S2B_18FXJ_20260121_0_L2A cloud  5.8%  ->  99.2% filled
+  0.77% left without a clear view: filled from neighbouring pixels
+Saved sentinel2_0.png
+sentinel2_1.png: 4160 x 1888 px at 10 m
+  2026-03-22 S2A_18FXJ_20260322_1_L2A cloud  0.9%  ->  99.2% filled
+  2026-03-22 S2B_18FXJ_20260322_0_L2A cloud  1.0%  ->  99.6% filled
+  0.42% left without a clear view: filled from neighbouring pixels
+Saved sentinel2_1.png
+Data ready. Next: pixi run prep
+  3 lakes cleaned up
+wrote sentinel2_0_graded.png
+  6 lakes cleaned up
+wrote sentinel2_1_graded.png
+2965 frames, 99 s at 30 fps
+    0.0 s  Lago Grey                326 m/s  lens  42    458 m up
+   19.0 s  icebergs                 378 m/s  lens  44    658 m up
+   29.5 s  Grey Glacier             434 m/s  lens  42    738 m up
+   37.2 s  Paine Grande             563 m/s  lens  46   1129 m up
+   46.4 s  Lago Pehoé               666 m/s  lens  46   1151 m up
+   53.2 s  the Cuernos              556 m/s  lens  44    955 m up
+   63.5 s  Valle del Francés        446 m/s  lens  48    609 m up
+   73.3 s  Mirador Británico        479 m/s  lens  46    600 m up
+   79.9 s  over the Cuernos         631 m/s  lens  48   1133 m up
+   88.6 s  Ascencio valley          431 m/s  lens  44    956 m up
+   93.8 s  Base de las Torres         0 m/s  lens  36    651 m up
+  lowest: 285 m above the ground at 12.9 s; path raised by up to 413 m to clear the terrain
+wrote /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/flight_map.png
