@@ -46,9 +46,15 @@ def cliffs(rgb: np.ndarray, left: float, top: float, slope: np.ndarray) -> np.nd
         RR, CC = np.meshgrid(rows[r0:r0 + 512], cols, indexing="ij")
         t = np.clip((ndimage.map_coordinates(slope, [RR, CC], order=1, mode="nearest") - lo) / (hi - lo), 0, 1)
         k[r0:r0 + 512] = t * t * (3 - 2 * t)
+    # how near vertical: snow doesn't hold on the towers' walls, whatever the satellite saw
+    vert = np.empty((h, w), dtype=np.float32)
+    for r0 in range(0, h, 512):
+        RR, CC = np.meshgrid(rows[r0:r0 + 512], cols, indexing="ij")
+        t = np.clip((ndimage.map_coordinates(slope, [RR, CC], order=1, mode="nearest") - 55.0) / 15.0, 0, 1)
+        vert[r0:r0 + 512] = t * t * (3 - 2 * t)
     lum = rgb.mean(axis=-1, keepdims=True)
-    snow = np.clip((lum[..., 0] - 0.62) / 0.15, 0, 1)            # leave ice and snow as they are
-    k *= 0.75 * (1 - snow)
+    snow = np.clip((lum[..., 0] - 0.62) / 0.15, 0, 1)            # leave ice and snow as they are...
+    k *= 0.8 * (1 - snow * (1 - vert))                            # ...except on the walls
     local = ndimage.uniform_filter(lum[..., 0], size=15)[..., None] + 1e-3
     rock = GRANITE * np.clip(0.88 + 0.3 * (lum / local - 1.0), 0.7, 1.15)
     return rgb * (1 - k[..., None]) + rock * k[..., None]
@@ -120,6 +126,9 @@ def grade(path, left, top, z, slope) -> None:
     rgb = lakes(rgb, left, top, z, slope)
     rgb = cliffs(rgb, left, top, slope)
     lum = (rgb @ np.array([0.2126, 0.7152, 0.0722], dtype=np.float32))[..., None]
+    # snow in the satellite's shadows comes out electric blue: calm it toward grey
+    icy = (np.clip((lum - 0.35) / 0.2, 0, 1) * np.clip((rgb[..., 2:3] - rgb[..., 0:1]) / 0.1, 0, 1))
+    rgb = lum + (rgb - lum) * (1 - 0.55 * icy)
     rgb = np.clip(lum + (rgb - lum) * SATURATION, 0.0, 1.0)
     rgb += 0.12 * (rgb - 0.5) * (1.0 - np.abs(2.0 * rgb - 1.0))     # gentle S-curve
     Image.fromarray((np.clip(rgb, 0, 1) * 255 + 0.5).astype(np.uint8)).save(config.graded(path))

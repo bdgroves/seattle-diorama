@@ -108,7 +108,9 @@ def sky_mask(img: np.ndarray) -> np.ndarray:
     lo, hi = img.min(axis=2), img.max(axis=2)
     lum = img.mean(axis=2).astype(np.float32)
     smooth = np.abs(lum - ndimage.uniform_filter(lum, 3)) < 1.5
-    cand = (lo >= 228) & (hi - lo <= 10) & smooth
+    r_, b_ = img[..., 0].astype(np.int16), img[..., 2].astype(np.int16)
+    # near-white grey, or (toward the low sun) forge3d's warm cream; snow is never this warm
+    cand = (((lo >= 228) & (hi - lo <= 10)) | ((r_ >= 238) & (r_ - b_ >= 22) & (lum > 200))) & smooth
     lab, n = ndimage.label(cand)
     top = np.unique(lab[0][lab[0] > 0])
     sky = np.isin(lab, top)

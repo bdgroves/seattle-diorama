@@ -43,9 +43,9 @@ KEYS = [
     ((-50.9700, -73.0480, 1700), (-50.9500, -73.0500, 2000), 300, 46, "Mirador Británico"),
     # 6. Climbing east over the Cuernos, then round to the east side of the Torres.
     ((-50.9750, -73.0000, 2700), (-50.9450, -72.9850, 2200), 820, 48, "over the Cuernos"),
-    ((-50.9550, -72.9300, 1700), (-50.9430, -72.9850, 2100), 640, 46, "Ascencio valley"),
-    # 7. Easing in over the Base de las Torres as the sun lights the towers.
-    ((-50.9440, -72.9500, 1350), (-50.9430, -72.9850, 2150), 0, 40, "Base de las Torres"),
+    ((-50.9580, -72.9150, 1500), (-50.9440, -72.9850, 2000), 640, 44, "Ascencio valley"),
+    # 7. Easing in east of the Base de las Torres, the towers on the skyline as the sun lights them.
+    ((-50.9500, -72.9250, 1150), (-50.9430, -72.9850, 2050), 0, 36, "Base de las Torres"),
 ]
 HOLD_S = 5.0
 FPS = 30
