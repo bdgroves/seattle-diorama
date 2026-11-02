@@ -1,0 +1,153 @@
+[viewer-ipc] Creating window 1920x1080
+[viewer-ipc] Window created, waiting for Resumed event
+[viewer-ipc] Received Resumed event
+[viewer-ipc] Initializing Viewer...
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+FORGE3D_VIEWER_ADAPTER name="llvmpipe (LLVM 20.1.2, 256 bits)" vendor=0x10005 device=0x0000 backend=Vulkan device_type=Cpu driver="llvmpipe" driver_info="Mesa 25.2.8-0ubuntu0.24.04.4 (LLVM 20.1.2)"
+[viewer] lit compute WGSL version 2 compiled
+[viewer-ipc] Viewer initialized successfully
+[XYZZY_TERRAIN] LoadTerrain handler entry, path=/home/runner/work/seattle-diorama/seattle-diorama/flyover/data/paine_dem_20m.tif
+[DEBUG LoadTerrain] Staging new terrain_viewer
+[terrain] Height range: 21.7 to 2651.9 (range: 2630.2)
+[terrain] Loaded 2080x1888 DEM, domain: 21.7..2651.9, grid=1888x1888
+[terrain] Loaded: /home/runner/work/seattle-diorama/seattle-diorama/flyover/data/paine_dem_20m.tif
+[DEBUG LoadTerrain] staged terrain_viewer published
+FORGE3D_VIEWER_READY port=43881
+[viewer-ipc] READY message sent, port=43881
+[viewer-debug] entering render loop (first frame)
+[viewer-debug] render gate: gi=true pipe=true cam=true vb=false z=true bgl=true
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[render] terrain_params: min_h=21.7, h_range=2630.2, width=41600.0, z_scale=1.00
+[render] Expected Y range: 0 to 2630.2
+[render] Camera target: (635500.0, 1315.1, -4347820.0)
+[overlay] LoadOverlay command received: name='sentinel2_0' path='/home/runner/work/seattle-diorama/seattle-diorama/flyover/data/sentinel2_0_graded.png'
+[overlay] terrain_viewer exists, calling add_overlay_image...
+[overlay] Added layer 'sentinel2_0' (id=0, 4160x1888)
+[overlay] Composite non-zero alpha pixels: 1963520 / 3927040
+[overlay] Built composite texture 2080x1888 from 1 visible layers
+[overlay] Loaded 'sentinel2_0' from /home/runner/work/seattle-diorama/seattle-diorama/flyover/data/sentinel2_0_graded.png (id=0)
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] preserve_colors=false
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] LoadOverlay command received: name='sentinel2_1' path='/home/runner/work/seattle-diorama/seattle-diorama/flyover/data/sentinel2_1_graded.png'
+[overlay] terrain_viewer exists, calling add_overlay_image...
+[overlay] Added layer 'sentinel2_1' (id=1, 4160x1888)
+[overlay] Composite non-zero alpha pixels: 3927040 / 3927040
+[overlay] Built composite texture 2080x1888 from 2 visible layers
+[overlay] Loaded 'sentinel2_1' from /home/runner/work/seattle-diorama/seattle-diorama/flyover/data/sentinel2_1_graded.png (id=1)
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] preserve_colors=false
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Sun: az=105.0° el=6.2° int=0.40
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain_scene] CSM renderer created, shadow_map_size=2048, has_moment_maps=false
+[terrain_scene] Shadows initialized (moment_maps=false)
+[terrain_pbr] updated: PBR: ON | shadow=none res=2048 | IBL=1.00 rot=0.0 exp=0.90 | msaa=4 normal=1.00 | height_ao=ON dirs=6 steps=16 | sun_vis=soft samples=4 steps=24 | tonemap=aces
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] PBR pipeline initialized
+[terrain] Height AO compute pipeline initialized (1040x944)
+[terrain] Sun visibility compute pipeline initialized (1040x944)
+[terrain_scene] Shadow depth pipeline initialized (4 cascades)
+[csm_uniforms] cascade_count=0, technique=1, shadow_map_size=2048
+[terrain] phi=135.0 theta=45.0 radius=50000 fov=55.0 target=(635500.0, 1315.1, -4347820.0) | sun_az=105.0 sun_el=6.2 intensity=0.40 ambient=0.50 source=manual_angles | zscale=1.00 shadow=0.50 | origin=(614700.000000,-4366700.000000) span=(41600.000000,37760.000000) fallback=false crs=Some({"name": "EPSG", "code": "32718"}) transform=Some((20.0, 0.0, 614700.0, 0.0, -20.0, 4366700.0))
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=66.7° theta=87.0° r=13158.7 fov=42.3° target=Some([625214.6843191739, -58.11108337575297, -4348104.609215917])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=66.7° theta=87.0° r=13158.7 fov=42.3° target=Some([625214.6843191739, -58.11108337575297, -4348104.609215917])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=63.4° theta=86.4° r=7266.9 fov=43.9° target=Some([624488.5928724747, 228.9367836178424, -4348768.266870186])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=57.8° theta=84.7° r=5101.9 fov=42.1° target=Some([623992.0045277027, 334.1939601446754, -4350336.038794916])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=132.6° theta=87.0° r=7651.6 fov=46.0° target=Some([636939.4009209068, 1035.3337079614505, -4349324.1683164975])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=103.5° theta=87.0° r=6597.9 fov=44.3° target=Some([639125.46644228, 748.3674791507602, -4350163.383050757])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=88.4° theta=87.0° r=4345.5 fov=47.7° target=Some([636944.635779027, 1115.0360074444447, -4353170.555477254])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=112.8° theta=84.3° r=3468.0 fov=47.6° target=Some([640709.3994273097, 2154.7864371809355, -4354375.577162761])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=33.8° theta=87.0° r=4186.1 fov=44.3° target=Some([641437.6850645617, 1763.9872025448178, -4354152.00774634])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=26.2° theta=87.0° r=7617.0 fov=46.0° target=Some([640335.2735255198, 1237.8604775497674, -4350980.846443713])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=38.2° theta=87.0° r=9881.7 fov=45.0° target=Some([639930.353209864, 845.6396667637231, -4350660.687833984])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=44.4° theta=87.0° r=11482.5 fov=44.0° target=Some([639691.9084059908, 577.4793541236218, -4350514.198865886])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=44.4° theta=87.0° r=11483.9 fov=44.0° target=Some([639691.7285888887, 577.2607092798738, -4350514.104586974])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/seattle-diorama/seattle-diorama/flyover/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
