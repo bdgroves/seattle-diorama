@@ -55,6 +55,7 @@ HAZE = {"enabled": True, "mode": "height", "density": 0.004, "height_falloff": 0
 # wherever the ground faces the light; the sky light only scales the imagery's own colours.
 SUN_INTENSITY = 0.4
 TERRAIN = {"zscale": 1.0, "ambient": 0.5}
+KEY = [1.0, 0.0, 1.0]       # magenta background, keyed out and replaced by the painted sky
 
 
 class _Tee:
@@ -103,8 +104,16 @@ def open_viewer(log_path, **kw):
 
 
 def sky_mask(img: np.ndarray) -> np.ndarray:
-    """The viewer's background: a smooth, near-white, grey gradient joined to the top edge."""
+    """The viewer's background. With KEY on, a magenta the terrain never has; otherwise a
+    smooth, near-white gradient joined to the top edge."""
     from scipy import ndimage
+    r, g, b = (img[..., k].astype(np.int16) for k in range(3))
+    key = (r > 110) & (b > 110) & (g < 0.62 * np.minimum(r, b))
+    if key[0].mean() > 0.5:
+        lab, _ = ndimage.label(key)
+        top = np.unique(lab[0][lab[0] > 0])
+        sky = np.isin(lab, top)
+        return ndimage.binary_dilation(sky, iterations=1)          # the antialiased edge
     lo, hi = img.min(axis=2), img.max(axis=2)
     lum = img.mean(axis=2).astype(np.float32)
     smooth = np.abs(lum - ndimage.uniform_filter(lum, 3)) < 1.5
@@ -117,14 +126,16 @@ def sky_mask(img: np.ndarray) -> np.ndarray:
     # touches the grey sky (the satellite imagery always has texture, even on snow)
     f = img.astype(np.float32)
     var = sum(ndimage.uniform_filter(f[..., c] ** 2, 7) - ndimage.uniform_filter(f[..., c], 7) ** 2 for c in range(3))
-    flat = (var < 1.5) & (lum > 200)
+    flat = (var < 6.0) & (lum > 212)
     wl, _ = ndimage.label(flat)
-    near = ndimage.binary_dilation(sky, iterations=10)
-    ids = np.unique(wl[near & (wl > 0)])
-    if len(ids):
+    for _ in range(3):                     # the haze can come in bands, each with its own seam
+        near = ndimage.binary_dilation(sky, iterations=16)
+        ids = np.unique(wl[near & (wl > 0) & ~sky])
+        if not len(ids):
+            break
         sizes = ndimage.sum(flat, wl, ids)
         sky |= np.isin(wl, [i for i, z in zip(ids, sizes) if z > 400])
-        sky = ndimage.binary_closing(sky, iterations=4) | sky
+    sky = ndimage.binary_closing(sky, iterations=4) | sky
     # close pinholes left by the smoothness test
     return ndimage.binary_closing(sky, iterations=2) | sky
 
@@ -302,6 +313,8 @@ def main() -> int:
                          "elevation_deg": float(sun.elevation), "intensity": SUN_INTENSITY})
         viewer.send_ipc({"cmd": "set_terrain_pbr", **pbr})
         viewer.send_ipc({"cmd": "set_terrain", **TERRAIN})
+        if not args.forge_sky:
+            viewer.send_ipc({"cmd": "set_terrain", "background": KEY})
         viewer.send_ipc(flight.camera(path.eye[frames[0]], path.aim[frames[0]], min_h, path.fov[frames[0]]))
         time.sleep(2.0)
         for n, i in enumerate(frames):
