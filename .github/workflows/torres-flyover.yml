@@ -84,7 +84,7 @@ jobs:
           set -o pipefail
           cd flyover/scripts
           xvfb-run -a -s "-screen 0 1920x1080x24" python render.py --stills "${{ inputs.seconds }}" \
-            --size ${{ inputs.size }} --lite 2>&1 | tee ../render.log
+            --size ${{ inputs.size }} --lite --raw 2>&1 | tee ../render.log
       - name: Push to torres-flyover-stills
         if: always()
         env: {GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}

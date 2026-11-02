@@ -112,18 +112,19 @@ def sky_mask(img: np.ndarray) -> np.ndarray:
     lab, n = ndimage.label(cand)
     top = np.unique(lab[0][lab[0] > 0])
     sky = np.isin(lab, top)
-    # toward the low sun forge3d's sky turns a warm cream, split from the grey by an
-    # antialiased seam: take any flat warm patch that touches the grey sky (snow is never
-    # this warm and this flat)
-    r_, b_ = img[..., 0].astype(np.int16), img[..., 2].astype(np.int16)
-    flat = np.abs(lum - ndimage.uniform_filter(lum, 5)) < 1.0
-    warm = (r_ >= 236) & (r_ - b_ >= 20) & (lum > 200) & flat
-    wl, _ = ndimage.label(warm)
-    near = ndimage.binary_dilation(sky, iterations=8)
+    # toward the low sun part of forge3d's background comes out a flat, brighter white,
+    # split from the grey by an antialiased seam: take any untextured bright patch that
+    # touches the grey sky (the satellite imagery always has texture, even on snow)
+    f = img.astype(np.float32)
+    var = sum(ndimage.uniform_filter(f[..., c] ** 2, 7) - ndimage.uniform_filter(f[..., c], 7) ** 2 for c in range(3))
+    flat = (var < 1.5) & (lum > 200)
+    wl, _ = ndimage.label(flat)
+    near = ndimage.binary_dilation(sky, iterations=10)
     ids = np.unique(wl[near & (wl > 0)])
-    sizes = ndimage.sum(warm, wl, ids) if len(ids) else []
-    ids = [i for i, z in zip(ids, sizes) if z > 400]
-    sky |= np.isin(wl, ids)
+    if len(ids):
+        sizes = ndimage.sum(flat, wl, ids)
+        sky |= np.isin(wl, [i for i, z in zip(ids, sizes) if z > 400])
+        sky = ndimage.binary_closing(sky, iterations=4) | sky
     # close pinholes left by the smoothness test
     return ndimage.binary_closing(sky, iterations=2) | sky
 
@@ -227,6 +228,7 @@ def main() -> int:
     ap.add_argument("--frames-dir", type=str, default=None, help="write frames as JPEGs here instead of an MP4")
     ap.add_argument("--chunk", type=int, default=0)
     ap.add_argument("--chunks", type=int, default=1)
+    ap.add_argument("--raw", action="store_true", help="also save the viewer's own frames with the stills")
     ap.add_argument("--encode", type=str, default=None, help="encode a folder of frames into the MP4")
     args = ap.parse_args()
     if args.encode:
@@ -307,6 +309,8 @@ def main() -> int:
             viewer.snapshot(snapshot, w, h)
             rgb = np.asarray(Image.open(snapshot).convert("RGB")) if args.forge_sky else finish(snapshot)
             rgb = titles(rgb, float(path.t[i]), float(path.t[-1]))
+            if args.stills and args.raw:
+                Image.open(snapshot).convert("RGB").save(stills_dir / f"raw_{path.t[i]:05.1f}s.png")
             if frames_dir:
                 Image.fromarray(rgb).save(frames_dir / f"frame_{i:05d}.jpg", quality=93)
             elif args.stills:
