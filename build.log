@@ -1,0 +1,68 @@
+✨ Pixi task (build): python pipeline/build.py
+Loaded 10,213 OSM elements from osm.json
+Coastline: 1 line(s) -> 2 pieces
+Buildings: 1,480 prisms (1,109 outlines, 602 parts)
+Trees: 7,645 (1,378 mapped in OSM)
+Monorail: 2 beam(s), 3050 m
+Artworks: 104
+Wrote /home/runner/work/seattle-diorama/seattle-diorama/web/public/data/scene.json (0.9 MB)
+✨ Pixi task (sierra-build): python pipeline/terrain.py build
+Traceback (most recent call last):
+  File "/home/runner/work/seattle-diorama/seattle-diorama/pipeline/terrain.py", line 1216, in main
+    build(place)
+  File "/home/runner/work/seattle-diorama/seattle-diorama/pipeline/terrain.py", line 479, in build
+    els = json.loads((RAW / f"{pid}_osm.json").read_text())["elements"]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/seattle-diorama/seattle-diorama/.pixi/envs/default/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/seattle-diorama/seattle-diorama/.pixi/envs/default/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/seattle-diorama/seattle-diorama/data/raw/amalfi_osm.json'
+[yosemite] grid 857 x 425 @ 18.0 m, 3,315 OSM elements, elevation 1114-2769 m
+  lakes: 4
+  rivers/streams: 53
+  roads: 482, lanes for traffic: 27
+  buildings: 1013
+  trees: 42,889
+  waterfall Upper Yosemite Fall: 446 m of the real 436 m found, slope 0.5
+  waterfall Lower Yosemite Fall: 125 m of the real 98 m found, slope 4.8
+  waterfall Bridalveil Fall: 232 m of the real 189 m found, slope 9.0
+  waterfall Vernal Fall: 103 m of the real 97 m found, slope 3.9
+  waterfall Nevada Fall: 181 m of the real 181 m found, slope 1.2
+  waterfall Ribbon Fall: 495 m of the real 491 m found, slope 9.6
+  waterfall Horsetail Fall: 312 m of the real 305 m found, slope 1.0
+  headlamps: 24
+  wrote yosemite.json + yosemite.bin (3.1 MB)
+[tuolumne] grid 688 x 505 @ 16.0 m, 946 OSM elements, elevation 2364-3405 m
+  lakes: 58
+  rivers/streams: 73
+  roads: 163, lanes for traffic: 2
+  buildings: 100
+  trees: 39,945
+  wrote tuolumne.json + tuolumne.bin (2.6 MB)
+[amalfi] FAILED
+[zermatt] grid 1110 x 750 @ 18.0 m, 7,299 OSM elements, elevation 1524-4630 m
+  lakes: 66
+  rivers/streams: 129
+  roads: 1216, lanes for traffic: 10
+  buildings: 2620
+  chalets: 2620
+  trees: 16,873
+  headlamps: 24
+  train line Matterhorn Gotthard Bahn: 2.5 km
+  train line Gornergratbahn: 5.5 km
+  lifts: 46, railways: 6, pistes: 243, cows: 275 in 18 herds
+  wrote zermatt.json + zermatt.bin (5.0 MB)
+[torres] grid 1075 x 922 @ 30.0 m, 1,072 OSM elements, elevation 23-2651 m
+  lakes: 88
+  rivers/streams: 99
+  roads: 206, lanes for traffic: 7
+  buildings: 129
+  trees: 58,747
+  waterfall Salto Grande: 15 m of the real 12 m found, slope 0.4
+  headlamps: 12
+  icebergs: 117
+  wrote torres.json + torres.bin (5.4 MB)
+failed: amalfi
