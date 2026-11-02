@@ -36,6 +36,13 @@ export const PLACES = [
     load: () => import('./zermatt.js').then((m) => m.zermattLoader()),
   },
   {
+    id: 'torres', name: 'Torres del Paine', tz: 'America/Punta_Arenas',
+    eyebrow: 'Magallanes, Chilean Patagonia', title: 'Torres <em>del</em> Paine',
+    blurb: 'The Torres, the Cuernos and the Grey Glacier: icebergs, condors, hikers on the W Trek and the Patagonian wind.',
+    lat: -50.99, lon: -73.05, where: 'in Torres del Paine',
+    load: () => import('./torres.js').then((m) => m.torresLoader()),
+  },
+  {
     id: 'dakar', name: 'Dakar Rally 2027', tz: 'Africa/Casablanca',
     eyebrow: 'Portugal & Morocco · 9–23 January 2027', title: 'Dakar <em>2027</em>',
     blurb: 'The 49th Dakar: the Algarve, a ferry to Africa, and twelve stages across Morocco to Marrakech.',

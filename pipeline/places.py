@@ -236,5 +236,65 @@ ZERMATT = {
     "walls": [(45.9790, 7.6650, 420), (45.9775, 7.6600, 300)],
 }
 
+TORRES = {
+    "id": "torres",
+    "name": "Torres del Paine",
+    # Lago Grey and the Grey Glacier in the west to the Hotel Las Torres in the east;
+    # Lago Pehoé and Salto Grande in the south to the north side of the Torres
+    "bbox": (-51.140, -73.300, -50.890, -72.840),
+    "cell": 30,
+    "vexag": 1.15,
+    "dem": "copernicus",                   # Copernicus GLO-30; Terrain Tiles fill any gap
+    "tile_zoom": 13,
+    "veg": "patagonia",
+    "treeline": 900,                       # lenga gives out abruptly around 900-1000 m here
+    "forest_east": -72.86,                 # east of here it's open steppe
+    "forest_bottom": 120,
+    "rock_slope": 40,
+    "tree_cap": 60000,
+    "tree_tall": 18,
+    "min_building": 20,
+    "lake_points": 2500,
+    "osm_extra": """
+  node["tourism"~"^(alpine_hut|wilderness_hut|camp_site|hotel|guest_house|hostel)$"]["name"]{b};
+  way["tourism"~"^(alpine_hut|wilderness_hut|camp_site|hotel|guest_house|hostel)$"]["name"]{b};
+  node["natural"="glacier"]["name"]{b};
+  relation["natural"="glacier"]{b};
+  node["natural"="valley"]["name"]{b};
+""",
+    "labels": [
+        ("Torres del Paine", r"^torre central", -50.9420, -72.9850, 130, "peak"),
+        ("Torre Sur", r"^torre sur", -50.9460, -72.9840, 100, "peak"),
+        ("Torre Norte", r"^torre norte", -50.9380, -72.9860, 100, "peak"),
+        ("Paine Grande", r"^(cerro )?paine grande$", -50.99889, -73.09528, 140, "peak"),
+        ("Cuernos del Paine", r"^cuerno principal|^cuernos del paine$", -50.9850, -73.0130, 120, "peak"),
+        ("Almirante Nieto", r"almirante nieto", -50.9580, -72.9620, 110, "peak"),
+        ("Glaciar Grey", r"^glaciar grey$", -50.9700, -73.2400, 120, ""),
+        ("Lago Grey", r"^lago grey$", -51.0800, -73.1700, 80, ""),
+        ("Lago Pehoé", r"^lago peho", -51.0700, -73.0500, 80, ""),
+        ("Lago Nordenskjöld", r"nordenskj", -51.0350, -72.9300, 80, ""),
+        ("Lago Skottsberg", r"skottsberg", -51.0300, -73.0700, 60, ""),
+        ("Salto Grande", r"^salto grande$", -51.0510, -73.0030, 50, ""),
+        ("Valle del Francés", r"^valle (del )?franc", -50.9700, -73.0450, 70, ""),
+        ("Mirador Británico", r"brit[aá]nico", -50.9560, -73.0500, 60, ""),
+        ("Mirador Base Las Torres", r"base (de )?las torres", -50.9420, -72.9660, 60, ""),
+        ("Refugio Grey", r"refugio grey|grey (lodge|refugio)", -51.0150, -73.2050, 50, ""),
+        ("Refugio Paine Grande", r"(refugio|lodge) paine grande|paine grande (lodge|refugio)", -51.0680, -73.1100, 50, ""),
+        ("Refugio Los Cuernos", r"(refugio|lodge|camping).*cuernos|cuernos (lodge|refugio)", -51.0170, -72.9950, 50, ""),
+        ("Refugio Chileno", r"chileno", -50.9580, -72.9170, 50, ""),
+        ("Campamento Italiano", r"italiano", -51.0020, -73.0430, 45, ""),
+        ("Hotel Las Torres", r"hotel las torres|las torres patagonia", -50.9750, -72.8750, 50, ""),
+    ],
+    "falls": [(r"^salto grande$", -51.0510, -73.0030, 12)],
+    # climbers' headlamps on the Torres before dawn
+    "walls": [(-50.9420, -72.9850, 500)],
+    # icebergs calved off Glaciar Grey, drifting down Lago Grey (lat, lon, radius m, count)
+    "icebergs": [
+        (-51.0150, -73.2000, 1800, 70),     # off the ice front
+        (-51.0500, -73.1700, 2500, 35),     # drifting south
+        (-51.0900, -73.1400, 2000, 12),     # aground at the south end
+    ],
+}
+
 # Mono Lake is retired from the picker (Oct 2026); its config stays here
-PLACES = {p["id"]: p for p in (YOSEMITE, TUOLUMNE, AMALFI, ZERMATT)}
+PLACES = {p["id"]: p for p in (YOSEMITE, TUOLUMNE, AMALFI, ZERMATT, TORRES)}

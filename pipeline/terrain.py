@@ -220,6 +220,67 @@ def fetch_dem_swissalti3d(g: Grid, fill_zoom=13) -> np.ndarray:
     return out
 
 
+def fetch_dem_copernicus(g: Grid, fill_zoom=13) -> np.ndarray:
+    """Copernicus GLO-30 (ESA, AWS open data): 1-degree COGs in lat/lon, sampled onto the
+    grid. Global, and better than SRTM in steep mountains; Terrain Tiles fill any gap."""
+    import tifffile
+    s, w, n, e = g.bbox
+    lat = np.linspace(n, s, g.ny)[:, None] * np.ones((1, g.nx))
+    lon = np.ones((g.ny, 1)) * np.linspace(w, e, g.nx)[None, :]
+    out = np.full((g.ny, g.nx), np.nan, np.float32)
+    for la in range(math.floor(s), math.floor(n) + 1):
+        for lo in range(math.floor(w), math.floor(e) + 1):
+            ns = f"N{la:02d}" if la >= 0 else f"S{-la:02d}"
+            ew = f"E{lo:03d}" if lo >= 0 else f"W{-lo:03d}"
+            name = f"Copernicus_DSM_COG_10_{ns}_00_{ew}_00_DEM"
+            url = f"https://copernicus-dem-30m.s3.amazonaws.com/{name}/{name}.tif"
+            print(f"  {name}", flush=True)
+            rr = None
+            for attempt in range(4):
+                try:
+                    rr = requests.get(url, timeout=300, headers={"User-Agent": UA})
+                    if rr.status_code == 404:
+                        rr = None
+                        break
+                    rr.raise_for_status()
+                    break
+                except Exception as exc:  # noqa: BLE001
+                    if attempt == 3:
+                        raise
+                    print(f"  retry: {exc}", flush=True)
+                    time.sleep(3 + 4 * attempt)
+            if rr is None:
+                print("    not found, skipped")
+                continue
+            with tifffile.TiffFile(io.BytesIO(rr.content)) as tf:
+                page = tf.pages[0]
+                arr = page.asarray().astype(np.float32)
+                tie = page.tags["ModelTiepointTag"].value
+                scale = page.tags["ModelPixelScaleTag"].value
+            lon0, lat0, rx, ry = tie[3], tie[4], scale[0], scale[1]
+            sel = (lat >= la) & (lat <= la + 1) & (lon >= lo) & (lon <= lo + 1)
+            if not sel.any():
+                continue
+            c = (lon[sel] - lon0) / rx - 0.5
+            r_ = (lat0 - lat[sel]) / ry - 0.5
+            h, wd = arr.shape
+            c = np.clip(c, 0, wd - 1.001); r_ = np.clip(r_, 0, h - 1.001)
+            i0, j0 = c.astype(int), r_.astype(int)
+            fx, fy = c - i0, r_ - j0
+            v = (arr[j0, i0] * (1 - fx) * (1 - fy) + arr[j0, i0 + 1] * fx * (1 - fy)
+                 + arr[j0 + 1, i0] * (1 - fx) * fy + arr[j0 + 1, i0 + 1] * fx * fy)
+            v[v < -1000] = np.nan
+            out[sel] = v
+    miss = ~np.isfinite(out)
+    print(f"  Copernicus covers {100 - miss.mean() * 100:.0f}% of the box", flush=True)
+    if miss.mean() > 0.5:
+        raise RuntimeError("Copernicus tiles missing")
+    if miss.any():
+        fill = fetch_dem_terrarium(g, fill_zoom)
+        out[miss] = fill[miss]
+    return out
+
+
 def overpass_query(bbox, extra=""):
     s, w, n, e = bbox
     b = f"({s},{w},{n},{e})"
@@ -261,8 +322,8 @@ def fetch(place, force=False):
     pid = place["id"]
     dem_path = RAW / f"{pid}_dem.npy"
     key = hashlib.md5(f"{place['bbox']}{g.nx}{g.ny}".encode()).hexdigest()[:10]
-    if place.get("dem") == "swissalti3d":
-        key += "-ch2"                                 # re-fetch when the source changes
+    if place.get("dem") in ("swissalti3d", "copernicus"):
+        key += "-" + place["dem"]                     # re-fetch when the source changes
     stamp = RAW / f"{pid}_dem.key"
     if force or not dem_path.exists() or not stamp.exists() or stamp.read_text() != key:
         try:
@@ -273,6 +334,20 @@ def fetch(place, force=False):
                 (RAW / f"{pid}_dem.src").write_text("swisstopo swissALTI3D (2 m), Terrain Tiles on AWS in Italy")
                 print(f"  elevation {np.nanmin(dem):.0f}-{np.nanmax(dem):.0f} m")
                 raise _Done()
+            if place.get("dem") == "copernicus":
+                try:
+                    print(f"[{pid}] Copernicus GLO-30 elevation {g.nx} x {g.ny} ...")
+                    dem = fetch_dem_copernicus(g, place.get("tile_zoom", 13))
+                    np.save(dem_path, dem)
+                    stamp.write_text(key)
+                    (RAW / f"{pid}_dem.src").write_text("Copernicus GLO-30 DEM (ESA)")
+                    print(f"  elevation {np.nanmin(dem):.0f}-{np.nanmax(dem):.0f} m")
+                    raise _Done()
+                except _Done:
+                    raise
+                except Exception as exc:  # noqa: BLE001
+                    print(f"  Copernicus failed ({exc}); Terrain Tiles instead")
+                raise RuntimeError("not in the US")
             if place.get("dem") == "terrarium":          # outside the US: no 3DEP
                 raise RuntimeError("not in the US")
             print(f"[{pid}] USGS 3DEP elevation {g.nx} x {g.ny} ...")
@@ -570,6 +645,7 @@ def build(place):
     lakes_out = []
     water_u = unary_union(water).intersection(clip) if water else Polygon()
     water_mask = np.zeros_like(dem, bool)
+    lake_level = np.full(dem.shape, np.nan, np.float32)
     for p in polys(water_u):
         if p.area < 4 * g.dx * g.dy:
             continue
@@ -585,6 +661,7 @@ def build(place):
             continue
         dem[m] = np.minimum(dem[m], level) - 1.0
         water_mask |= m
+        lake_level[m] = level
         ps = orient(p.simplify(max(2.0, g.dx * 0.25)), 1.0)
         rings = [ring_flat(ps.exterior.coords)] + [ring_flat(h.coords) for h in ps.interiors if Polygon(h).area > g.dx * g.dy]
         if len(rings[0]) >= 6:
@@ -600,6 +677,17 @@ def build(place):
         cls[dem < place.get("maquis_top", 450)] = SAGE
     if place["veg"] == "alps":                        # open pasture unless OSM maps a wood
         cls[:] = MEADOW
+    if place["veg"] == "patagonia":
+        # golden steppe grass and scrub by default; lenga (southern beech) forest on the
+        # sheltered lower slopes west of the open steppe, up to a sharp treeline
+        cls[:] = SAGE
+        lon_east = place.get("forest_east", 180.0)
+        xs = g.x0 + np.arange(g.nx) * g.dx
+        west = (xs < g.proj(g.lat0, lon_east)[0])[None, :]
+        rs_ = np.random.default_rng(1959)
+        patch = np.asarray(Image.fromarray((rs_.random((g.ny // 8 + 2, g.nx // 8 + 2)) * 255).astype(np.uint8))
+                           .resize((g.nx, g.ny), Image.BICUBIC), np.float32) / 255.0
+        cls[west & (dem > place.get("forest_bottom", 150)) & (dem < tl) & (slope > 7) & (patch > 0.38)] = FOREST
     cls[dem > tl] = ALPINE
     if place["veg"] == "alps":
         cls[dem > place.get("alpine_top", 2750)] = ROCK
@@ -792,7 +880,7 @@ def build(place):
         if c == SAGE:
             if rnd.random() > 0.015:                   # a few junipers and pinyons in the sage
                 continue
-            kind, sz = 0, 0.35
+            kind, sz = (2, 0.3) if place["veg"] == "patagonia" else (0, 0.35)   # calafate and ñirre
         else:
             if rnd.random() > p_tree:
                 continue
@@ -805,6 +893,8 @@ def build(place):
             elif near_water[j, i] and 1900 < e < 3000 and rnd.random() < (0.6 if place["veg"] == "eastside" else 0.12):
                 kind = 2
             elif place["veg"] == "alps" and rnd.random() < 0.5:   # larch among the arolla pines
+                kind = 1
+            if place["veg"] == "patagonia":            # lenga: a southern beech, red in autumn
                 kind = 1
             # thin out up high
             if e > tl - 250 and rnd.random() < (e - (tl - 250)) / 250:
@@ -959,6 +1049,36 @@ def build(place):
                     placed += 1
         print(f"  tufa: {len(tufa) // 4}")
 
+    # ---- icebergs calved off the glaciers, floating on the lakes (x, y, surface z, size)
+    bergs = []
+    for lat, lon, rad, count in place.get("icebergs", []):
+        cx, cy = g.proj(lat, lon)
+        placed, tries = 0, 0
+        while placed < count and tries < count * 80:
+            tries += 1
+            a, d = rnd.uniform(0, 2 * math.pi), rad * math.sqrt(rnd.random())
+            x, y = cx + d * math.cos(a), cy + d * math.sin(a)
+            c, r = g.px(x, y)
+            i, j = int(round(c)), int(round(r))
+            if not (0 <= i < g.nx and 0 <= j < g.ny) or not np.isfinite(lake_level[j, i]):
+                continue
+            # most are small; a few are house-sized, more of them near the ice front
+            sz = (0.3 + 2.2 * rnd.random() ** 3) * (1.6 - 0.8 * d / rad)
+            bergs += [round(x, 1), round(y, 1), round((float(lake_level[j, i]) - h0) * vex + 0.4, 1), round(sz, 2)]
+            placed += 1
+    if bergs:
+        print(f"  icebergs: {len(bergs) // 4}")
+    # points on the big lakes, for spray when the wind blows (x, y, surface z)
+    lakepts = []
+    if place.get("lake_points"):
+        js_, is_ = np.nonzero(np.isfinite(lake_level))
+        if len(js_):
+            for k in rnd.sample(range(len(js_)), min(place["lake_points"], len(js_))):
+                j, i = js_[k], is_[k]
+                x = g.x0 + i * g.dx + rnd.uniform(-0.5, 0.5) * g.dx
+                y = g.y1 - j * g.dy + rnd.uniform(-0.5, 0.5) * g.dy
+                lakepts += [round(x, 1), round(y, 1), round((float(lake_level[j, i]) - h0) * vex + 0.4, 1)]
+
     gulls = None
     if place.get("gulls"):
         hit = find(r"^negit island$")
@@ -1066,7 +1186,7 @@ def build(place):
                  "h0": round(h0, 2), "vexag": vex, "bin": f"{pid}.bin", "sea": sea_z},
         "lakes": lakes_out, "rivers": rivers_out, "roads": roads_out, "lanes": lanes_out,
         "buildings": bld_out, "trees": trees, "labels": labels_out, "falls": falls_out,
-        "lamps": lamps, "tufa": tufa, "gulls": gulls,
+        "lamps": lamps, "tufa": tufa, "gulls": gulls, "icebergs": bergs, "lakepts": lakepts,
         "drive": drive, "routes": routes, "anchored": anchored, "umbrellas": umbrellas,
         "models": models_out, "model_boxes": model_boxes,
         **alpine_out,

@@ -49,7 +49,7 @@ jobs:
       - name: Build scene
         run: pixi run build 2>&1 | tee build.log
 
-      - name: Build terrain places (Yosemite, Tuolumne, Mono, Amalfi)
+      - name: Build terrain places (Yosemite, Tuolumne, Amalfi, Zermatt, Torres del Paine)
         run: pixi run sierra-build 2>&1 | tee -a build.log
 
       - name: Build the Dakar Rally 2027
