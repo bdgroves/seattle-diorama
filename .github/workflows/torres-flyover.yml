@@ -1,0 +1,175 @@
+name: Torres del Paine flyover (forge3d)
+
+# The forge3d film in flyover/, rendered on GitHub's CPUs (Mesa's software Vulkan under a
+# virtual display). Adapted from github.com/bdgroves/icefields-flyover.
+#   mode data   : Copernicus DEM + Sentinel-2 -> the torres-flyover-data branch, with the
+#                 flight map and logs on torres-flyover-log
+#   mode stills : full-size frames at the listed seconds -> torres-flyover-stills
+#   mode film   : the whole flight in parallel pieces -> an MP4, a web copy and a poster
+#                 on torres-flyover-video. If pieces fail, run again with reuse_run.
+on:
+  workflow_dispatch:
+    inputs:
+      mode: {description: "data, stills or film", default: "data"}
+      seconds: {description: "Seconds for stills", default: "0,12,24,33,42,50,58,68,76,84,90,97"}
+      chunks: {description: "Parallel jobs (film)", default: "30"}
+      size: {description: "Frame size", default: "1920x1080"}
+      reuse_run: {description: "Run ID whose frames to keep (film)", default: ""}
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  PIP: "forge3d==1.42.0 rasterio numpy scipy pillow shapely"
+  APT: mesa-vulkan-drivers libvulkan1 xvfb libx11-xcb1 libxkbcommon-x11-0 libxkbcommon0 libxcursor1 libxi6 libxrandr2 libxcb-xkb1 libxcb-randr0 libxcb-shape0 libxcb-xfixes0 libwayland-client0 libegl1 fonts-dejavu-core
+
+jobs:
+  data:
+    if: ${{ inputs.mode == 'data' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -q rasterio numpy scipy pillow shapely
+      - name: Fetch and prepare
+        run: |
+          set -o pipefail
+          cd flyover/scripts
+          python fetch_data.py 2>&1 | tee ../data.log
+          python prep.py 2>&1 | tee -a ../data.log
+          python flight.py 2>&1 | tee -a ../data.log
+      - name: Log and flight map to torres-flyover-log
+        if: always()
+        env: {GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        run: |
+          mkdir -p /tmp/l && cd /tmp/l && git init -q -b torres-flyover-log
+          cp "$GITHUB_WORKSPACE"/flyover/data.log . 2>/dev/null || echo "no log" > data.log
+          cp "$GITHUB_WORKSPACE"/flyover/out/flight_map.png . 2>/dev/null || true
+          python3 -c "
+          from PIL import Image; from pathlib import Path
+          Image.MAX_IMAGE_PIXELS = None
+          for p in sorted(Path('$GITHUB_WORKSPACE/flyover/data').glob('sentinel2_*_graded.png')):
+              im = Image.open(p).convert('RGB'); im.thumbnail((1600, 1600)); im.save(p.stem + '_small.jpg', quality=85)
+          " || true
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "Torres flyover data log (run ${GITHUB_RUN_ID})"
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" torres-flyover-log
+      - name: Publish to torres-flyover-data
+        env: {GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        run: |
+          mkdir -p /tmp/d && cd /tmp/d && git init -q -b torres-flyover-data
+          cp "$GITHUB_WORKSPACE"/flyover/data/*.tif "$GITHUB_WORKSPACE"/flyover/data/*_graded.png .
+          ls -la
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "Torres flyover data (run ${GITHUB_RUN_ID})"
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" torres-flyover-data
+
+  stills:
+    if: ${{ inputs.mode == 'stills' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+      - run: git fetch -q --depth 1 origin torres-flyover-data && mkdir -p flyover/data && git archive FETCH_HEAD | tar -x -C flyover/data
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq $APT >/dev/null
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -q $PIP
+      - name: Stills
+        env: {XDG_RUNTIME_DIR: /tmp}
+        run: |
+          set -o pipefail
+          cd flyover/scripts
+          xvfb-run -a -s "-screen 0 1920x1080x24" python render.py --stills "${{ inputs.seconds }}" \
+            --size ${{ inputs.size }} --lite 2>&1 | tee ../render.log
+      - name: Push to torres-flyover-stills
+        if: always()
+        env: {GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        run: |
+          mkdir -p /tmp/s && cd /tmp/s && git init -q -b torres-flyover-stills
+          python3 -c "
+          from PIL import Image; from pathlib import Path
+          for p in sorted(Path('$GITHUB_WORKSPACE/flyover/out/stills').glob('*.png')):
+              Image.open(p).convert('RGB').save(p.with_suffix('.jpg').name, quality=90)
+          " || true
+          cp "$GITHUB_WORKSPACE"/flyover/render.log "$GITHUB_WORKSPACE"/flyover/out/viewer.log . 2>/dev/null || true
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "Torres flyover stills (run ${GITHUB_RUN_ID})"
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" torres-flyover-stills
+
+  plan:
+    if: ${{ inputs.mode == 'film' }}
+    runs-on: ubuntu-latest
+    outputs: {chunks: "${{ steps.c.outputs.list }}"}
+    steps:
+      - id: c
+        run: echo "list=$(python3 -c "print(list(range(int('${{ inputs.chunks }}'))))")" >> "$GITHUB_OUTPUT"
+
+  frames:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix: {chunk: "${{ fromJSON(needs.plan.outputs.chunks) }}"}
+    steps:
+      - uses: actions/checkout@v5
+      - run: git fetch -q --depth 1 origin torres-flyover-data && mkdir -p flyover/data && git archive FETCH_HEAD | tar -x -C flyover/data
+      - name: Frames from an earlier run
+        if: ${{ inputs.reuse_run != '' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with: {name: "frames-${{ matrix.chunk }}", path: flyover/out/frames, run-id: "${{ inputs.reuse_run }}", github-token: "${{ secrets.GITHUB_TOKEN }}"}
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq $APT >/dev/null
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -q $PIP
+      - name: Render this piece
+        env: {XDG_RUNTIME_DIR: /tmp}
+        run: |
+          set -o pipefail
+          cd flyover/scripts
+          for attempt in 1 2 3; do
+            xvfb-run -a -s "-screen 0 1920x1080x24" python render.py --size ${{ inputs.size }} --lite \
+              --frames-dir ../out/frames --chunk ${{ matrix.chunk }} --chunks ${{ inputs.chunks }} 2>&1 | tee -a ../render.log && exit 0
+            sleep $((attempt * 30))
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: "frames-${{ matrix.chunk }}", path: flyover/out/frames/frame_*.jpg, retention-days: 7, compression-level: 0}
+
+  video:
+    needs: frames
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with: {pattern: "frames-*", path: flyover/out/frames, merge-multiple: true}
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-dejavu-core >/dev/null
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -q numpy pillow scipy rasterio && pip install -q --no-deps forge3d==1.42.0
+      - run: cd flyover/scripts && python render.py --encode ../out/frames
+      - name: Web copies and poster
+        run: |
+          cd flyover/out
+          f=torres_del_paine_flyover.mp4
+          ffmpeg -y -loglevel error -i $f -c:v libx264 -preset slow -crf 24 -pix_fmt yuv420p -movflags +faststart -an torres-flyover-1080.mp4
+          ffmpeg -y -loglevel error -i $f -vf scale=1280:720 -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -movflags +faststart -an torres-flyover.mp4
+          ffmpeg -y -loglevel error -sseof -2 -i $f -frames:v 1 -q:v 3 torres-flyover-poster.jpg
+          ls -la
+      - name: Push to torres-flyover-video
+        env: {GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        run: |
+          mkdir -p /tmp/v && cd /tmp/v && git init -q -b torres-flyover-video
+          cp "$GITHUB_WORKSPACE"/flyover/out/torres-flyover*.mp4 "$GITHUB_WORKSPACE"/flyover/out/torres-flyover-poster.jpg .
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "Torres flyover video (run ${GITHUB_RUN_ID})"
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" torres-flyover-video
+      - uses: actions/upload-artifact@v4
+        with: {name: film, path: flyover/out/torres_del_paine_flyover.mp4, retention-days: 30}
