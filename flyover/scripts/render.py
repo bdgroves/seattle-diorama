@@ -27,6 +27,7 @@ import forge3d as f3d
 
 import config
 import flight
+import skyline
 
 # Dawn sky, zenith to horizon, and a faint warm haze toward the horizon.
 ZENITH = np.array([0.18, 0.30, 0.56])
@@ -55,7 +56,6 @@ HAZE = {"enabled": True, "mode": "height", "density": 0.004, "height_falloff": 0
 # wherever the ground faces the light; the sky light only scales the imagery's own colours.
 SUN_INTENSITY = 0.4
 TERRAIN = {"zscale": 1.0, "ambient": 0.5}
-KEY = [1.0, 0.0, 1.0]       # magenta background, keyed out and replaced by the painted sky
 
 
 class _Tee:
@@ -104,16 +104,9 @@ def open_viewer(log_path, **kw):
 
 
 def sky_mask(img: np.ndarray) -> np.ndarray:
-    """The viewer's background. With KEY on, a magenta the terrain never has; otherwise a
-    smooth, near-white gradient joined to the top edge."""
+    """Fallback sky (the projected skyline in skyline.py is used when the DEM is at hand):
+    a smooth, near-white gradient joined to the top edge."""
     from scipy import ndimage
-    r, g, b = (img[..., k].astype(np.int16) for k in range(3))
-    key = (r > 110) & (b > 110) & (g < 0.62 * np.minimum(r, b))
-    if key[0].mean() > 0.5:
-        lab, _ = ndimage.label(key)
-        top = np.unique(lab[0][lab[0] > 0])
-        sky = np.isin(lab, top)
-        return ndimage.binary_dilation(sky, iterations=1)          # the antialiased edge
     lo, hi = img.min(axis=2), img.max(axis=2)
     lum = img.mean(axis=2).astype(np.float32)
     smooth = np.abs(lum - ndimage.uniform_filter(lum, 3)) < 1.5
@@ -140,11 +133,11 @@ def sky_mask(img: np.ndarray) -> np.ndarray:
     return ndimage.binary_closing(sky, iterations=2) | sky
 
 
-def finish(png: Path) -> np.ndarray:
+def finish(png: Path, top: np.ndarray | None = None) -> np.ndarray:
     """Evening look: a painted sky behind the terrain, warm highlights and cool shadows on the
     land, and haze thickening toward the skyline (distant ridges sit near it)."""
     img = np.asarray(Image.open(png).convert("RGB")).astype(np.int16)
-    sky = sky_mask(img)
+    sky = skyline.mask(img, top) if top is not None else sky_mask(img)
     h = img.shape[0]
     # skyline: the typical height where the sky ends, never so high it squashes the gradient
     first_land = np.argmin(sky, axis=0)
@@ -313,14 +306,16 @@ def main() -> int:
                          "elevation_deg": float(sun.elevation), "intensity": SUN_INTENSITY})
         viewer.send_ipc({"cmd": "set_terrain_pbr", **pbr})
         viewer.send_ipc({"cmd": "set_terrain", **TERRAIN})
-        if not args.forge_sky:
-            viewer.send_ipc({"cmd": "set_terrain", "background": KEY})
         viewer.send_ipc(flight.camera(path.eye[frames[0]], path.aim[frames[0]], min_h, path.fov[frames[0]]))
         time.sleep(2.0)
         for n, i in enumerate(frames):
             viewer.send_ipc(flight.camera(path.eye[i], path.aim[i], min_h, float(path.fov[i])))
             viewer.snapshot(snapshot, w, h)
-            rgb = np.asarray(Image.open(snapshot).convert("RGB")) if args.forge_sky else finish(snapshot)
+            if args.forge_sky:
+                rgb = np.asarray(Image.open(snapshot).convert("RGB"))
+            else:
+                top = skyline.skyline(dem, path.eye[i], path.aim[i], float(path.fov[i]), w, h)
+                rgb = finish(snapshot, top)
             rgb = titles(rgb, float(path.t[i]), float(path.t[-1]))
             if args.stills and args.raw:
                 Image.open(snapshot).convert("RGB").save(stills_dir / f"raw_{path.t[i]:05.1f}s.png")

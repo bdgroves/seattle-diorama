@@ -54,6 +54,7 @@ FPS = 30
 MIN_CLEARANCE = 200.0          # metres above the highest ground within LOOK_RADIUS of the eye
 LOOK_RADIUS = 300.0
 FOV = 50.0
+MIN_DIP = 3.0                # degrees the camera always looks down, at least
 
 
 def to_utm(lat, lon):
@@ -141,6 +142,10 @@ def plan(dem: np.ndarray | None = None, fps: int = FPS) -> Flight:
             eye[:, 2] += lift
             lifted = float(lift.max())
         clear = eye[:, 2] - sample(dem, eye[:, 0], eye[:, 1])
+    # forge3d's orbit camera can't look above level (it clamps the polar angle at the
+    # horizon), so keep every aim a little below the eye: what's asked for is what's drawn
+    horiz = np.hypot(aim[:, 0] - eye[:, 0], aim[:, 1] - eye[:, 1])
+    aim[:, 2] = np.minimum(aim[:, 2], eye[:, 2] - np.tan(np.radians(MIN_DIP)) * horiz)
     return Flight(t, eye, aim, fov, clear, speed, lifted, times)
 
 
