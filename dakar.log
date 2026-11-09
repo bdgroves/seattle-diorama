@@ -1,0 +1,9 @@
+✨ Pixi task (dakar-fetch): python pipeline/dakar.py fetch
+[dakar] Terrarium z8 tiles onto 790 x 742 @ 2000 m ...
+  elevation -5899 to 3915 m
+✨ Pixi task (dakar-build): python pipeline/dakar.py build
+[dakar] grid 790 x 742 @ 2001 m, elevation -1500 to 3915 m
+  sea 48% of the box
+  landcover: green 27%, steppe 5%, desert 68%, ergs 9962 cells
+  route from https://brooksgroves.com/dakar.json (updated 2026-10-30)
+  15 stages, 8 towns, 4404 lights; wrote dakar.json + dakar.bin (1.9 MB)
